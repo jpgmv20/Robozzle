@@ -13,8 +13,14 @@ namespace RobozllueApp
 
             using (var conn = Database.GetConnection())
             {
-                // Pegamos ID, Titulo, Dificuldade e o JSON bruto
-                string sql = "SELECT id, title, difficulty, level_json FROM levels WHERE published = 1";
+                // Busca dados da fase + dados do autor
+                string sql = @"
+                    SELECT l.id, l.title, l.difficulty, l.level_json, l.author_id,
+                           u.nome AS author_name, u.avatar_image AS author_avatar
+                    FROM levels l
+                    JOIN users u ON l.author_id = u.id
+                    WHERE l.published = 1
+                    ORDER BY l.created_at DESC";
 
                 using (var cmd = new MySqlCommand(sql, conn))
                 using (var reader = cmd.ExecuteReader())
@@ -25,29 +31,22 @@ namespace RobozllueApp
                         level.Id = reader.GetInt32("id");
                         level.Title = reader.GetString("title");
                         level.Difficulty = reader.GetString("difficulty");
+                        level.AuthorId = reader.GetInt32("author_id");
+                        level.AuthorName = reader.GetString("author_name");
 
-                        // 1. Pegamos o JSON puro (string) do banco
-                        string jsonRaw = reader.IsDBNull(reader.GetOrdinal("level_json"))
-                                         ? "{}"
-                                         : reader.GetString("level_json");
+                        if (!reader.IsDBNull(reader.GetOrdinal("author_avatar")))
+                        {
+                            level.AuthorAvatarBytes = (byte[])reader["author_avatar"];
+                        }
 
-                        // 2. Convertemos (Deserializamos) para a classe C#
-                        try
-                        {
-                            level.Data = JsonConvert.DeserializeObject<LevelData>(jsonRaw);
-                        }
-                        catch (Exception ex)
-                        {
-                            // Se o JSON estiver corrompido, cria um level vazio para não travar
-                            Console.WriteLine($"Erro ao ler JSON do level {level.Id}: {ex.Message}");
-                            level.Data = new LevelData();
-                        }
+                        string jsonRaw = reader.IsDBNull(reader.GetOrdinal("level_json")) ? "{}" : reader.GetString("level_json");
+                        try { level.Data = JsonConvert.DeserializeObject<LevelData>(jsonRaw); }
+                        catch { level.Data = new LevelData(); }
 
                         levels.Add(level);
                     }
                 }
             }
-
             return levels;
         }
     }

@@ -20,6 +20,7 @@
             this.btnCreateLevel = new System.Windows.Forms.Button();
             this.txtSearch = new System.Windows.Forms.TextBox();
             this.cmbFilter = new System.Windows.Forms.ComboBox();
+            this.cmbSearchType = new System.Windows.Forms.ComboBox(); // NOVO
             this.pbUserAvatar = new System.Windows.Forms.PictureBox();
             this.ctxUserMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.menuProfile = new System.Windows.Forms.ToolStripMenuItem();
@@ -38,7 +39,7 @@
             this.pnlContainer.Location = new System.Drawing.Point(0, 80);
             this.pnlContainer.Name = "pnlContainer";
             this.pnlContainer.Padding = new System.Windows.Forms.Padding(20);
-            this.pnlContainer.Size = new System.Drawing.Size(800, 370);
+            this.pnlContainer.Size = new System.Drawing.Size(900, 400); // Aumentei um pouco a largura padrão
             this.pnlContainer.TabIndex = 0;
             // 
             // lblTitle
@@ -48,37 +49,43 @@
             this.lblTitle.ForeColor = System.Drawing.Color.DimGray;
             this.lblTitle.Location = new System.Drawing.Point(20, 20);
             this.lblTitle.Name = "lblTitle";
-            this.lblTitle.Size = new System.Drawing.Size(267, 37);
+            this.lblTitle.Size = new System.Drawing.Size(137, 37);
             this.lblTitle.TabIndex = 1;
-            this.lblTitle.Text = "Selecione uma Fase";
+            this.lblTitle.Text = "Robozzle";
+            // 
+            // cmbSearchType (NOVO: Seleciona "Fases" ou "Perfis")
+            // 
+            this.cmbSearchType.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmbSearchType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbSearchType.FormattingEnabled = true;
+            this.cmbSearchType.Items.AddRange(new object[] { "Fases", "Perfis" });
+            this.cmbSearchType.Location = new System.Drawing.Point(200, 30);
+            this.cmbSearchType.Name = "cmbSearchType";
+            this.cmbSearchType.Size = new System.Drawing.Size(80, 23);
+            this.cmbSearchType.TabIndex = 6;
+            this.cmbSearchType.SelectedIndexChanged += new System.EventHandler(this.cmbSearchType_SelectedIndexChanged);
             // 
             // txtSearch
             // 
             this.txtSearch.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtSearch.Location = new System.Drawing.Point(240, 30);
+            this.txtSearch.Location = new System.Drawing.Point(290, 30);
             this.txtSearch.Name = "txtSearch";
-            this.txtSearch.PlaceholderText = "Pesquisar fase...";
+            this.txtSearch.PlaceholderText = "Pesquisar...";
             this.txtSearch.Size = new System.Drawing.Size(200, 23);
             this.txtSearch.TabIndex = 3;
-            this.txtSearch.TextChanged += new System.EventHandler(this.FilterLevels);
+            this.txtSearch.TextChanged += new System.EventHandler(this.FilterContent);
             // 
-            // cmbFilter
+            // cmbFilter (Opções mudam conforme SearchType)
             // 
             this.cmbFilter.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.cmbFilter.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbFilter.FormattingEnabled = true;
-            this.cmbFilter.Items.AddRange(new object[] {
-            "Todas",
-            "Easy",
-            "Medium",
-            "Hard",
-            "Insane"});
-            this.cmbFilter.Location = new System.Drawing.Point(450, 30);
+            // Itens iniciais serão definidos no código
+            this.cmbFilter.Location = new System.Drawing.Point(500, 30);
             this.cmbFilter.Name = "cmbFilter";
-            this.cmbFilter.Size = new System.Drawing.Size(100, 23);
+            this.cmbFilter.Size = new System.Drawing.Size(120, 23);
             this.cmbFilter.TabIndex = 4;
-            this.cmbFilter.SelectedIndex = 0;
-            this.cmbFilter.SelectedIndexChanged += new System.EventHandler(this.FilterLevels);
+            this.cmbFilter.SelectedIndexChanged += new System.EventHandler(this.FilterContent);
             // 
             // btnCreateLevel
             // 
@@ -87,12 +94,11 @@
             this.btnCreateLevel.Cursor = System.Windows.Forms.Cursors.Hand;
             this.btnCreateLevel.FlatAppearance.BorderSize = 0;
             this.btnCreateLevel.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnCreateLevel.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.btnCreateLevel.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
             this.btnCreateLevel.ForeColor = System.Drawing.Color.White;
-            // POSIÇÃO AJUSTADA: Mais à esquerda para não encostar no Avatar
-            this.btnCreateLevel.Location = new System.Drawing.Point(560, 20);
+            this.btnCreateLevel.Location = new System.Drawing.Point(640, 25);
             this.btnCreateLevel.Name = "btnCreateLevel";
-            this.btnCreateLevel.Size = new System.Drawing.Size(150, 40);
+            this.btnCreateLevel.Size = new System.Drawing.Size(120, 32);
             this.btnCreateLevel.TabIndex = 2;
             this.btnCreateLevel.Text = "+ CRIAR FASE";
             this.btnCreateLevel.UseVisualStyleBackColor = false;
@@ -102,8 +108,7 @@
             // 
             this.pbUserAvatar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.pbUserAvatar.Cursor = System.Windows.Forms.Cursors.Hand;
-            // POSIÇÃO DO AVATAR: Canto direito
-            this.pbUserAvatar.Location = new System.Drawing.Point(740, 15);
+            this.pbUserAvatar.Location = new System.Drawing.Point(780, 15);
             this.pbUserAvatar.Name = "pbUserAvatar";
             this.pbUserAvatar.Size = new System.Drawing.Size(50, 50);
             this.pbUserAvatar.TabIndex = 5;
@@ -137,7 +142,8 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(900, 500); // Form um pouco maior
+            this.Controls.Add(this.cmbSearchType); // Adicionado
             this.Controls.Add(this.pbUserAvatar);
             this.Controls.Add(this.btnCreateLevel);
             this.Controls.Add(this.cmbFilter);
@@ -162,6 +168,7 @@
         private System.Windows.Forms.Button btnCreateLevel;
         private System.Windows.Forms.TextBox txtSearch;
         private System.Windows.Forms.ComboBox cmbFilter;
+        private System.Windows.Forms.ComboBox cmbSearchType; // NOVO
         private System.Windows.Forms.PictureBox pbUserAvatar;
         private System.Windows.Forms.ContextMenuStrip ctxUserMenu;
         private System.Windows.Forms.ToolStripMenuItem menuProfile;

@@ -2,16 +2,18 @@
 
 namespace RobozllueApp
 {
-    // Representa a linha da tabela SQL 'levels'
     public class LevelEntity
     {
         public int Id { get; set; }
         public string Title { get; set; } = string.Empty;
         public string Difficulty { get; set; } = string.Empty;
         public LevelData Data { get; set; } = new LevelData();
-    }
 
-    // --- Classes que espelham a estrutura interna do JSON ---
+        // Novos campos para o card social
+        public int AuthorId { get; set; }
+        public string AuthorName { get; set; } = "Desconhecido";
+        public byte[]? AuthorAvatarBytes { get; set; }
+    }
 
     public class LevelData
     {
@@ -26,7 +28,6 @@ namespace RobozllueApp
     {
         public string color { get; set; } = "none";
         public string symbol { get; set; } = "none";
-        // Direção: 0=Up, 1=Right, 2=Down, 3=Left. Padrão 1 (Direita)
         public int direction { get; set; } = 1;
     }
 
@@ -36,16 +37,9 @@ namespace RobozllueApp
         public int size { get; set; }
     }
 
-    // Classe para representar um slot de comando na Engine
     public class CommandSlot
     {
         public string Action { get; set; } = "";
         public string ConditionColor { get; set; } = "none";
-
-        public override string ToString()
-        {
-            string cond = ConditionColor == "none" ? "" : $"[{ConditionColor}] ";
-            return $"{cond}{Action}";
-        }
     }
 }

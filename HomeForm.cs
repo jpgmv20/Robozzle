@@ -1,20 +1,20 @@
-﻿using Newtonsoft.Json;
+﻿using MySql.Data.MySqlClient;
+using Newtonsoft.Json;
 using RobozllueApp;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 
 namespace Robozzle
 {
-    // Herda de FormLoader para manter o padrão visual (maximized)
     public partial class HomeForm : FormLoader
     {
-        // Cache local das fases para permitir filtro rápido sem ir ao banco toda hora
-        private List<LevelEntity> _allLevels = new List<LevelEntity>();
+        private List<LevelEntity> _cachedLevels = new List<LevelEntity>();
 
         public HomeForm()
         {
@@ -23,170 +23,264 @@ namespace Robozzle
 
         private void HomeForm_Load(object sender, EventArgs e)
         {
-            // Aplica o tema (Dark/Light) conforme configuração do usuário
             ThemeManager.ApplyTheme(this);
-
-            // Carrega a foto do usuário no canto superior
             LoadUserAvatar();
 
-            // Busca as fases no banco de dados
-            CarregarFasesDoBanco();
+            // Define padrão inicial
+            cmbSearchType.SelectedIndex = 0;
         }
 
-        // --- GESTÃO DE USUÁRIO (AVATAR E MENU) ---
-
-        private void LoadUserAvatar()
+        // --- ALTERNÂNCIA DE MODO ---
+        private void cmbSearchType_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (UserSession.Avatar != null)
+            UpdateFilters();
+            FilterContent(sender, e);
+        }
+
+        private void UpdateFilters()
+        {
+            cmbFilter.SelectedIndexChanged -= FilterContent;
+            cmbFilter.Items.Clear();
+
+            if (cmbSearchType.SelectedIndex == 0) // FASES
             {
-                // Cria uma versão redonda da imagem do avatar
-                Bitmap bmp = new Bitmap(50, 50);
-                using (Graphics g = Graphics.FromImage(bmp))
-                {
-                    g.SmoothingMode = SmoothingMode.AntiAlias;
-                    g.Clear(Color.Transparent);
+                cmbFilter.Items.AddRange(new object[] { "Todas", "Easy", "Medium", "Hard", "Insane" });
+                txtSearch.PlaceholderText = "Pesquisar fase...";
+            }
+            else // PERFIS
+            {
+                cmbFilter.Items.AddRange(new object[] { "Todos", "Mais Seguidos", "Criadores Ativos" });
+                txtSearch.PlaceholderText = "Pesquisar usuário...";
+            }
 
-                    // Cria um pincel de textura com a imagem do avatar
-                    using (TextureBrush tb = new TextureBrush(UserSession.Avatar))
-                    {
-                        // Ajusta a escala para caber no círculo de 50x50
-                        tb.TranslateTransform(0, 0);
-                        float scaleX = 50f / UserSession.Avatar.Width;
-                        float scaleY = 50f / UserSession.Avatar.Height;
-                        tb.ScaleTransform(scaleX, scaleY);
+            cmbFilter.SelectedIndex = 0;
+            cmbFilter.SelectedIndexChanged += FilterContent;
+        }
 
-                        // Preenche uma elipse (círculo)
-                        g.FillEllipse(tb, 0, 0, 50, 50);
-                    }
-                    // Opcional: Borda suave
-                    // using (Pen p = new Pen(Color.Gray, 1)) g.DrawEllipse(p, 0, 0, 49, 49);
-                }
-                pbUserAvatar.Image = bmp;
+        private void FilterContent(object sender, EventArgs e)
+        {
+            if (cmbSearchType.SelectedIndex == 0)
+            {
+                // MODO FASES
+                if (_cachedLevels.Count == 0) CarregarFasesDoBanco();
+                else FiltrarFasesLocais();
             }
             else
             {
-                // Se não tiver avatar, coloca uma cor padrão ou imagem genérica
-                pbUserAvatar.Image = null;
-                pbUserAvatar.BackColor = Color.Gray;
+                // MODO PERFIS
+                BuscarPerfisNoBanco();
             }
         }
 
-        private void pbUserAvatar_Click(object sender, EventArgs e)
-        {
-            // Abre o menu de contexto logo abaixo do avatar
-            ctxUserMenu.Show(pbUserAvatar, new Point(0, pbUserAvatar.Height));
-        }
-
-        private void menuProfile_Click(object sender, EventArgs e)
-        {
-            // Abre a tela de perfil
-            ProfileForm profile = new ProfileForm();
-            this.Hide();
-            profile.ShowDialog();
-
-            // Ao voltar, recarrega as preferências (tema e avatar podem ter mudado)
-            ThemeManager.ApplyTheme(this);
-            LoadUserAvatar();
-            this.Show();
-        }
-
-        private void menuLogout_Click(object sender, EventArgs e)
-        {
-            // Faz logout e volta para o login
-            UserSession.Logout();
-            LoginForm login = new LoginForm();
-            this.Hide();
-            login.ShowDialog();
-            this.Close(); // Fecha a Home definitivamente
-        }
-
-        // --- GESTÃO DE FASES (CARREGAR E FILTRAR) ---
+        // --- LÓGICA DE FASES ---
 
         private void CarregarFasesDoBanco()
         {
             try
             {
                 LevelRepository repo = new LevelRepository();
-                _allLevels = repo.GetAllLevels(); // Busca tudo do banco
-
-                // Exibe a lista completa inicialmente
-                RenderLevelList(_allLevels);
+                _cachedLevels = repo.GetAllLevels();
+                FiltrarFasesLocais();
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Erro ao carregar fases: {ex.Message}");
-            }
+            catch (Exception ex) { MessageBox.Show("Erro: " + ex.Message); }
         }
 
-        // Método chamado quando digita na busca ou muda o combo de dificuldade
-        private void FilterLevels(object sender, EventArgs e)
+        private void FiltrarFasesLocais()
         {
-            string searchText = txtSearch.Text.Trim().ToLower();
-            string difficultyFilter = cmbFilter.SelectedItem?.ToString() ?? "Todas";
+            string search = txtSearch.Text.Trim().ToLower();
+            string diff = cmbFilter.SelectedItem?.ToString() ?? "Todas";
 
-            // Filtra a lista em memória usando LINQ
-            var filteredLevels = _allLevels.Where(level =>
+            // Atalho: se digitar @ no modo fases, muda para modo perfil
+            if (search.StartsWith("@"))
             {
-                bool matchesText = string.IsNullOrEmpty(searchText) || level.Title.ToLower().Contains(searchText);
-                bool matchesDiff = difficultyFilter == "Todas" || level.Difficulty.Equals(difficultyFilter, StringComparison.OrdinalIgnoreCase);
+                cmbSearchType.SelectedIndex = 1; // Muda para Perfil
+                txtSearch.Text = search.Substring(1); // Remove o @
+                return;
+            }
 
-                return matchesText && matchesDiff;
-            }).ToList();
+            var filtered = _cachedLevels.Where(l =>
+                l.Title.ToLower().Contains(search) &&
+                (diff == "Todas" || l.Difficulty.Equals(diff, StringComparison.OrdinalIgnoreCase))
+            ).ToList();
 
-            RenderLevelList(filteredLevels);
+            RenderLevelList(filtered);
         }
 
         private void RenderLevelList(List<LevelEntity> levels)
         {
-            // Suspende layout para melhorar performance visual durante a atualização
             pnlContainer.SuspendLayout();
             pnlContainer.Controls.Clear();
 
-            if (levels.Count == 0)
-            {
-                Label lblEmpty = new Label();
-                lblEmpty.Text = "Nenhuma fase encontrada com esses filtros.";
-                lblEmpty.AutoSize = true;
-                lblEmpty.Font = new Font("Segoe UI", 12);
-                lblEmpty.ForeColor = Color.Gray;
-                pnlContainer.Controls.Add(lblEmpty);
-            }
+            if (levels.Count == 0) MostrarMensagemVazio("Nenhuma fase encontrada.");
             else
             {
                 foreach (var nivel in levels)
                 {
-                    Button btnLevel = new Button();
+                    var card = new LevelItemControl(nivel);
+                    card.SetPreview(GerarPreview(nivel.Data, 220, 120));
 
-                    // --- Estilo "Card" ---
-                    btnLevel.Size = new Size(240, 220);
-                    btnLevel.BackColor = (UserSession.Theme == "dark") ? Color.FromArgb(60, 60, 60) : Color.White;
-                    btnLevel.ForeColor = (UserSession.Theme == "dark") ? Color.White : Color.FromArgb(64, 64, 64);
+                    card.PlayRequested += (s, lvl) => {
+                        string json = JsonConvert.SerializeObject(lvl.Data);
+                        GameForm game = new GameForm(json);
+                        ThemeManager.ApplyTheme(game);
+                        this.Hide(); game.ShowDialog(); this.Show();
+                    };
 
-                    btnLevel.FlatStyle = FlatStyle.Flat;
-                    btnLevel.FlatAppearance.BorderSize = 0;
-                    btnLevel.Font = new Font("Segoe UI", 10, FontStyle.Regular);
-                    btnLevel.Cursor = Cursors.Hand;
-                    btnLevel.Margin = new Padding(15);
-
-                    // Configura Texto
-                    btnLevel.Text = $"{nivel.Title}\n[{nivel.Difficulty.ToUpper()}]";
-                    btnLevel.TextAlign = ContentAlignment.BottomCenter;
-                    btnLevel.TextImageRelation = TextImageRelation.ImageAboveText;
-                    btnLevel.ImageAlign = ContentAlignment.MiddleCenter;
-                    btnLevel.Padding = new Padding(5);
-
-                    // Gera Preview Visual
-                    btnLevel.Image = GerarPreview(nivel.Data, 220, 130);
-
-                    // Guarda os dados no botão para usar no clique
-                    btnLevel.Tag = nivel.Data;
-                    btnLevel.Click += BtnLevel_Click;
-
-                    pnlContainer.Controls.Add(btnLevel);
+                    card.ProfileRequested += (s, authorId) => AbrirPerfil(authorId);
+                    pnlContainer.Controls.Add(card);
                 }
             }
-
             pnlContainer.ResumeLayout();
+        }
+
+        // --- LÓGICA DE PERFIS (ATUALIZADA) ---
+
+        private void BuscarPerfisNoBanco()
+        {
+            pnlContainer.SuspendLayout();
+            pnlContainer.Controls.Clear();
+
+            string search = txtSearch.Text.Trim();
+            string filter = cmbFilter.SelectedItem?.ToString() ?? "Todos";
+            string orderBy = "u.nome ASC";
+
+            if (filter == "Mais Seguidos")
+                orderBy = "(SELECT COUNT(*) FROM followers f WHERE f.user_id = u.id) DESC";
+            else if (filter == "Criadores Ativos")
+                orderBy = "(SELECT COUNT(*) FROM levels l WHERE l.author_id = u.id AND l.published = 1) DESC";
+
+            try
+            {
+                using (var conn = Database.GetConnection())
+                {
+                    // QUERY ATUALIZADA: Busca Descrição + Contagens
+                    string sql = $@"
+                        SELECT u.id, u.nome, u.avatar_image, u.descricao,
+                               (SELECT COUNT(*) FROM followers sub WHERE sub.user_id = u.id) as num_seguidores,
+                               (SELECT COUNT(*) FROM levels l WHERE l.author_id = u.id AND l.published = 1) as num_fases
+                        FROM users u 
+                        WHERE u.nome LIKE @q 
+                        ORDER BY {orderBy} LIMIT 50";
+
+                    using (var cmd = new MySqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@q", "%" + search + "%");
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            if (!reader.HasRows) MostrarMensagemVazio("Nenhum usuário encontrado.");
+
+                            while (reader.Read())
+                            {
+                                int id = reader.GetInt32("id");
+                                string nome = reader.GetString("nome");
+                                byte[]? avatar = reader.IsDBNull(reader.GetOrdinal("avatar_image")) ? null : (byte[])reader["avatar_image"];
+
+                                string desc = reader.IsDBNull(reader.GetOrdinal("descricao")) ? "" : reader.GetString("descricao");
+                                int seg = reader.GetInt32("num_seguidores");
+                                int fases = reader.GetInt32("num_fases");
+
+                                RenderRichUserCard(id, nome, avatar, desc, seg, fases);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex) { MessageBox.Show("Erro busca perfil: " + ex.Message); }
+            finally { pnlContainer.ResumeLayout(); }
+        }
+
+        // --- RENDERIZAÇÃO DO CARD RICO (Igual ao UserListForm) ---
+        private void RenderRichUserCard(int id, string name, byte[]? avatarBytes, string descricao, int seguidores, int fases)
+        {
+            bool isDark = UserSession.Theme == "dark";
+            Color textColor = isDark ? Color.White : Color.FromArgb(64, 64, 64);
+            Color subTextColor = isDark ? Color.LightGray : Color.Gray;
+
+            // 1. CARD (Painel)
+            Panel pnlCard = new Panel();
+            pnlCard.Size = new Size(360, 90);
+            pnlCard.Margin = new Padding(15); // Margem maior para a grid da home
+            pnlCard.Cursor = Cursors.Hand;
+            pnlCard.BorderStyle = BorderStyle.FixedSingle;
+            pnlCard.BackColor = isDark ? Color.FromArgb(60, 60, 60) : Color.White;
+
+            pnlCard.Click += (s, e) => AbrirPerfil(id);
+
+            // 2. AVATAR
+            PictureBox pb = new PictureBox();
+            pb.Size = new Size(60, 60);
+            pb.Location = new Point(10, 15);
+            pb.SizeMode = PictureBoxSizeMode.StretchImage;
+            pb.BackColor = Color.Transparent;
+            pb.Enabled = false;
+
+            if (avatarBytes != null && avatarBytes.Length > 0)
+            {
+                using (var ms = new MemoryStream(avatarBytes)) pb.Image = Image.FromStream(ms);
+            }
+            else
+            {
+                try { pb.LoadAsync($"https://ui-avatars.com/api/?name={name}&background=random&color=fff&size=128"); } catch { }
+            }
+
+            pb.Paint += (s, e) => {
+                GraphicsPath gp = new GraphicsPath();
+                gp.AddEllipse(0, 0, pb.Width, pb.Height);
+                pb.Region = new Region(gp);
+            };
+
+            // 3. NOME
+            Label lblNome = new Label();
+            lblNome.Text = name;
+            lblNome.Location = new Point(80, 10);
+            lblNome.AutoSize = true;
+            lblNome.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+            lblNome.ForeColor = textColor;
+            lblNome.Enabled = false;
+
+            // 4. DESCRIÇÃO
+            string descCurta = descricao;
+            if (descCurta.Length > 35) descCurta = descCurta.Substring(0, 35) + "...";
+            if (string.IsNullOrWhiteSpace(descCurta)) descCurta = "Sem descrição.";
+
+            Label lblDesc = new Label();
+            lblDesc.Text = descCurta;
+            lblDesc.Location = new Point(80, 35);
+            lblDesc.Size = new Size(260, 20);
+            lblDesc.Font = new Font("Segoe UI", 9F, FontStyle.Italic);
+            lblDesc.ForeColor = subTextColor;
+            lblDesc.Enabled = false;
+
+            // 5. ESTATÍSTICAS
+            Label lblStats = new Label();
+            lblStats.Text = $"👥 {seguidores} Seguidores   🎮 {fases} Fases";
+            lblStats.Location = new Point(80, 58);
+            lblStats.AutoSize = true;
+            lblStats.Font = new Font("Segoe UI", 8F, FontStyle.Bold);
+            lblStats.ForeColor = Color.FromArgb(0, 120, 215);
+            lblStats.Enabled = false;
+
+            pnlCard.Controls.Add(pb);
+            pnlCard.Controls.Add(lblNome);
+            pnlCard.Controls.Add(lblDesc);
+            pnlCard.Controls.Add(lblStats);
+
+            pnlContainer.Controls.Add(pnlCard);
+        }
+
+        // --- AUXILIARES ---
+
+        private void AbrirPerfil(int userId)
+        {
+            ProfileForm p = new ProfileForm(userId);
+            this.Hide(); p.ShowDialog();
+            ThemeManager.ApplyTheme(this); LoadUserAvatar(); this.Show();
+        }
+
+        private void MostrarMensagemVazio(string msg)
+        {
+            Label lbl = new Label { Text = msg, AutoSize = true, ForeColor = Color.Gray, Font = new Font("Segoe UI", 12), Margin = new Padding(20) };
+            pnlContainer.Controls.Add(lbl);
         }
 
         private Bitmap GerarPreview(LevelData level, int width, int height)
@@ -194,108 +288,60 @@ namespace Robozzle
             Bitmap bmp = new Bitmap(width, height);
             using (Graphics g = Graphics.FromImage(bmp))
             {
-                // Fundo transparente ou cor suave dependendo do tema
-                g.Clear(Color.Transparent);
-                g.SmoothingMode = SmoothingMode.AntiAlias;
-                g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                g.Clear(Color.Transparent); g.SmoothingMode = SmoothingMode.AntiAlias; g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                if (level.matrix == null) return bmp;
+                int rows = level.matrix.Count; int cols = level.matrix[0].Count;
+                float cw = (float)width / cols; float ch = (float)height / rows;
+                int rad = Math.Max(2, (int)(Math.Min(cw, ch) * 0.25f));
 
-                if (level.matrix == null || level.matrix.Count == 0) return bmp;
-
-                int rows = level.matrix.Count;
-                int cols = level.matrix[0].Count;
-
-                float cellW = (float)width / cols;
-                float cellH = (float)height / rows;
-
-                // Arredondamento proporcional
-                int cornerRadius = Math.Max(2, (int)(Math.Min(cellW, cellH) * 0.25f));
-
-                for (int r = 0; r < rows; r++)
-                {
-                    for (int c = 0; c < cols; c++)
+                for (int r = 0; r < rows; r++) for (int c = 0; c < cols; c++)
                     {
                         var cell = level.matrix[r][c];
-                        RectangleF rectF = new RectangleF(c * cellW, r * cellH, cellW, cellH);
-                        Rectangle tileRect = Rectangle.Round(rectF);
-
-                        // Define cores
-                        Brush brush = Brushes.Transparent;
-                        string colorName = cell.color?.ToLower() ?? "none";
-
-                        if (colorName == "blue") brush = new SolidBrush(Color.FromArgb(100, 149, 237));
-                        else if (colorName == "red") brush = new SolidBrush(Color.FromArgb(205, 92, 92));
-                        else if (colorName == "green") brush = new SolidBrush(Color.FromArgb(60, 179, 113));
-
-                        // Desenha apenas se tiver cor (chão)
-                        if (colorName != "none")
+                        RectangleF rf = new RectangleF(c * cw, r * ch, cw, ch);
+                        Brush b = Brushes.Transparent;
+                        if (cell.color == "blue") b = new SolidBrush(Color.FromArgb(100, 149, 237));
+                        else if (cell.color == "red") b = new SolidBrush(Color.FromArgb(205, 92, 92));
+                        else if (cell.color == "green") b = new SolidBrush(Color.FromArgb(60, 179, 113));
+                        if (cell.color != "none")
                         {
-                            // Usa a classe utilitária para desenhar arredondado
-                            using (GraphicsPath path = GraphicsUtils.CreateRoundedRectanglePath(tileRect, cornerRadius))
-                            {
-                                g.FillPath(brush, path);
-                            }
+                            using (GraphicsPath p = GraphicsUtils.CreateRoundedRectanglePath(Rectangle.Round(rf), rad)) g.FillPath(b, p);
                         }
-
-                        if (brush is SolidBrush sb) sb.Dispose();
-
-                        // Desenha Símbolos
-                        string symbol = cell.symbol?.ToLower() ?? "none";
-                        if (symbol == "star")
-                        {
-                            float fontSize = Math.Min(cellW, cellH) * 0.6f;
-                            using (Font f = new Font("Segoe UI Symbol", fontSize, FontStyle.Bold))
-                            {
-                                StringFormat sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
-                                g.DrawString("★", f, Brushes.Gold, rectF, sf);
-                            }
-                        }
-                        else if (symbol == "play" || symbol == "player")
-                        {
-                            float fontSize = Math.Min(cellW, cellH) * 0.5f;
-                            using (Font f = new Font("Segoe UI Symbol", fontSize, FontStyle.Bold))
-                            {
-                                StringFormat sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
-                                g.DrawString("▶", f, Brushes.WhiteSmoke, rectF, sf);
-                            }
-                        }
+                        if (b is SolidBrush sb) sb.Dispose();
+                        if (cell.symbol == "star") g.DrawString("★", new Font("Segoe UI Symbol", Math.Min(cw, ch) * 0.6f, FontStyle.Bold), Brushes.Gold, rf, new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center });
+                        else if (cell.symbol == "play" || cell.symbol == "player") g.DrawString("▶", new Font("Segoe UI Symbol", Math.Min(cw, ch) * 0.5f, FontStyle.Bold), Brushes.Gray, rf, new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center });
                     }
-                }
             }
             return bmp;
         }
 
-        // --- AÇÕES ---
-
-        private void BtnLevel_Click(object sender, EventArgs e)
+        private void LoadUserAvatar()
         {
-            Button btn = (Button)sender;
-            LevelData data = (LevelData)btn.Tag;
-
-            if (data != null)
+            if (UserSession.Avatar != null)
             {
-                string jsonString = JsonConvert.SerializeObject(data);
-                GameForm gameForm = new GameForm(jsonString);
-
-                // Aplica tema ao jogo antes de abrir
-                ThemeManager.ApplyTheme(gameForm);
-
-                this.Hide();
-                gameForm.ShowDialog();
-                this.Show();
+                Bitmap bmp = new Bitmap(50, 50);
+                using (Graphics g = Graphics.FromImage(bmp))
+                {
+                    g.SmoothingMode = SmoothingMode.AntiAlias; g.Clear(Color.Transparent);
+                    using (TextureBrush tb = new TextureBrush(UserSession.Avatar))
+                    {
+                        tb.TranslateTransform(0, 0);
+                        tb.ScaleTransform(50f / UserSession.Avatar.Width, 50f / UserSession.Avatar.Height);
+                        g.FillEllipse(tb, 0, 0, 50, 50);
+                    }
+                }
+                pbUserAvatar.Image = bmp;
             }
+            else { pbUserAvatar.Image = null; pbUserAvatar.BackColor = Color.Gray; }
         }
 
+        private void pbUserAvatar_Click(object sender, EventArgs e) => ctxUserMenu.Show(pbUserAvatar, new Point(0, pbUserAvatar.Height));
+        private void menuProfile_Click(object sender, EventArgs e) => AbrirPerfil(UserSession.Id);
+        private void menuLogout_Click(object sender, EventArgs e) { UserSession.Logout(); new LoginForm().Show(); this.Close(); }
         private void btnCreateLevel_Click(object sender, EventArgs e)
         {
             LevelEditorForm editor = new LevelEditorForm();
-            ThemeManager.ApplyTheme(editor); // Aplica tema ao editor
-
-            this.Hide();
-            editor.ShowDialog();
-            this.Show();
-
-            // Recarrega lista, pois o usuário pode ter criado uma fase nova
-            CarregarFasesDoBanco();
+            ThemeManager.ApplyTheme(editor); this.Hide(); editor.ShowDialog(); this.Show();
+            if (cmbSearchType.SelectedIndex == 0) CarregarFasesDoBanco();
         }
     }
 }
