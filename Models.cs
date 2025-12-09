@@ -6,34 +6,46 @@ namespace RobozllueApp
     public class LevelEntity
     {
         public int Id { get; set; }
-        public string Title { get; set; }
-        public string Difficulty { get; set; }
-        public LevelData Data { get; set; } // Aqui ficará o JSON já convertido
+        public string Title { get; set; } = string.Empty;
+        public string Difficulty { get; set; } = string.Empty;
+        public LevelData Data { get; set; } = new LevelData();
     }
 
     // --- Classes que espelham a estrutura interna do JSON ---
 
-    // Raiz do JSON
     public class LevelData
     {
-        public string title { get; set; }
-        public string difficulty { get; set; }
-        public int grid_cell_size { get; set; } // Note que o nome deve ser igual ao do JSON
-        public List<List<CellData>> matrix { get; set; }
-        public List<FunctionData> functions { get; set; }
+        public string title { get; set; } = string.Empty;
+        public string difficulty { get; set; } = "easy";
+        public int grid_cell_size { get; set; } = 48;
+        public List<List<CellData>> matrix { get; set; } = new List<List<CellData>>();
+        public List<FunctionData> functions { get; set; } = new List<FunctionData>();
     }
 
-    // Itens da Matriz
     public class CellData
     {
         public string color { get; set; } = "none";
         public string symbol { get; set; } = "none";
+        // Direção: 0=Up, 1=Right, 2=Down, 3=Left. Padrão 1 (Direita)
+        public int direction { get; set; } = 1;
     }
 
-    // Itens das Funções
     public class FunctionData
     {
-        public string name { get; set; }
+        public string name { get; set; } = string.Empty;
         public int size { get; set; }
+    }
+
+    // Classe para representar um slot de comando na Engine
+    public class CommandSlot
+    {
+        public string Action { get; set; } = "";
+        public string ConditionColor { get; set; } = "none";
+
+        public override string ToString()
+        {
+            string cond = ConditionColor == "none" ? "" : $"[{ConditionColor}] ";
+            return $"{cond}{Action}";
+        }
     }
 }
