@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Windows.Forms;
-using System.ComponentModel;
 using RobozllueApp;
 
 namespace Robozzle
@@ -14,83 +14,79 @@ namespace Robozzle
 
     public partial class MessageBubble : UserControl
     {
-        // Construtor Vazio (Necessário para o Designer)
+        private MessageType _type;
+        private Color _bubbleColor;
+
         public MessageBubble()
         {
             InitializeComponent();
         }
 
-        // Construtor para Texto simples
-        public MessageBubble(string message)
-        {
-            InitializeComponent();
-            this.MessageText = message;
-            this.TimeText = DateTime.Now.ToString("HH:mm");
-            this.SetBubbleType(MessageType.Out);
-        }
-
-        // --- NOVO CONSTRUTOR: Resolve o erro do ChatForm ---
         public MessageBubble(ChatMessage msg)
         {
             InitializeComponent();
-            this.MessageText = msg.Content;
-            this.TimeText = msg.CreatedAt.ToString("HH:mm");
+            this.DoubleBuffered = true;
+            this.ResizeRedraw = true;
 
-            // Define o lado e cor automaticamente
+            this.lblMessage.Text = msg.Content;
+            this.lblTime.Text = msg.CreatedAt.ToString("HH:mm");
+
+            // Configuração de cores e alinhamento
             if (msg.IsMine)
-                SetBubbleType(MessageType.Out);
-            else
-                SetBubbleType(MessageType.In);
-        }
-
-        [Category("Custom Properties")]
-        [Description("Texto da mensagem")]
-        [Browsable(true)]
-        [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
-        public string MessageText
-        {
-            get { return lblMessage.Text; }
-            set
             {
-                lblMessage.Text = value;
-                AdjustHeight();
-            }
-        }
+                _type = MessageType.Out;
+                _bubbleColor = Color.FromArgb(220, 248, 198); // Verde suave
 
-        [Category("Custom Properties")]
-        [Description("Hora da mensagem")]
-        [Browsable(true)]
-        [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
-        public string TimeText
-        {
-            get { return lblTime.Text; }
-            set { lblTime.Text = value; }
-        }
+                // Força texto preto e hora cinza
+                lblMessage.ForeColor = Color.Black;
+                lblTime.ForeColor = Color.DimGray;
 
-        public void SetBubbleType(MessageType type)
-        {
-            if (type == MessageType.Out)
-            {
                 this.Padding = new Padding(50, 5, 5, 5);
-                panelBackground.BackColor = Color.LightGreen;
                 panelBackground.Dock = DockStyle.Right;
-                lblTime.TextAlign = ContentAlignment.MiddleRight;
+                lblTime.TextAlign = ContentAlignment.BottomRight;
             }
             else
             {
+                _type = MessageType.In;
+                _bubbleColor = Color.White;
+
+                // Força texto preto e hora cinza
+                lblMessage.ForeColor = Color.Black;
+                lblTime.ForeColor = Color.Gray;
+
                 this.Padding = new Padding(5, 5, 50, 5);
-                panelBackground.BackColor = Color.White;
                 panelBackground.Dock = DockStyle.Left;
-                lblTime.TextAlign = ContentAlignment.MiddleLeft;
+                lblTime.TextAlign = ContentAlignment.BottomLeft;
             }
+
+            // Remove estilos padrão
+            panelBackground.BackColor = Color.Transparent;
+            lblMessage.BackColor = Color.Transparent;
+            lblTime.BackColor = Color.Transparent;
+            panelBackground.BorderStyle = BorderStyle.None;
+
+            panelBackground.Paint += PanelBackground_Paint;
         }
 
-        private void AdjustHeight()
+        private void PanelBackground_Paint(object? sender, PaintEventArgs e)
         {
-            if (lblMessage != null && lblTime != null)
+            var g = e.Graphics;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+
+            Rectangle rect = new Rectangle(0, 0, panelBackground.Width - 1, panelBackground.Height - 1);
+            int radius = 15;
+
+            using (GraphicsPath path = GraphicsUtils.CreateRoundedRectanglePath(rect, radius))
+            using (SolidBrush brush = new SolidBrush(_bubbleColor))
+            using (Pen pen = new Pen(Color.FromArgb(210, 210, 210), 1))
             {
-                int novaAltura = lblMessage.Height + lblTime.Height + 30;
-                this.Height = novaAltura;
+                g.FillPath(brush, path);
+
+                // Borda apenas nas mensagens recebidas
+                if (_type == MessageType.In)
+                {
+                    g.DrawPath(pen, path);
+                }
             }
         }
 
@@ -98,6 +94,17 @@ namespace Robozzle
         {
             base.OnLoad(e);
             AdjustHeight();
+        }
+
+        private void AdjustHeight()
+        {
+            // Calcula altura baseada no texto
+            Size size = TextRenderer.MeasureText(lblMessage.Text, lblMessage.Font, new Size(lblMessage.Width, 0), TextFormatFlags.WordBreak);
+
+            // --- AJUSTE DE ESPAÇAMENTO AQUI ---
+            // Aumentei de 30 para 45. Isso empurra o Dock=Bottom (hora) mais para baixo,
+            // criando um vão maior entre o texto e a hora.
+            this.Height = size.Height + lblTime.Height + 45;
         }
     }
 }

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -11,15 +12,20 @@ namespace Robozzle
     {
         private ChatRepository _repo = new ChatRepository();
         private int _currentConversationId = 0;
-        private int _lastMessageCount = 0; // Para saber se precisa rolar a tela
+        private int _lastMessageCount = 0;
+        private List<Conversation> _myConversations = new List<Conversation>();
 
         public ChatForm()
         {
             InitializeComponent();
-            this.PainelCentral = splitContainer1; // Tela cheia
+
+            // --- CORREÇÃO DO BUG DO PAINEL BRANCO ---
+            // NÃO defina this.PainelCentral. Deixe o SplitContainer preencher tudo.
+            // this.PainelCentral = splitContainer1; <--- ISSO CAUSAVA O ERRO
+
+            this.txtMessage.KeyDown += txtMessage_KeyDown;
         }
 
-        // Construtor para abrir já numa conversa
         public ChatForm(int openConversationId) : this()
         {
             _currentConversationId = openConversationId;
@@ -28,40 +34,86 @@ namespace Robozzle
         private void ChatForm_Load(object sender, EventArgs e)
         {
             ThemeManager.ApplyTheme(this);
-            LoadConversations();
+            LoadMyConversations();
 
-            // Se abriu com ID específico, carrega ele
+            // Se veio com ID, tenta abrir direto
             if (_currentConversationId > 0)
             {
-                LoadMessages(_currentConversationId);
-                // Tenta selecionar na lista
-                foreach (Conversation c in lstConversations.Items)
-                    if (c.Id == _currentConversationId) lstConversations.SelectedItem = c;
+                var match = _myConversations.FirstOrDefault(c => c.Id == _currentConversationId);
+                if (match != null)
+                {
+                    lstConversations.SelectedItem = match;
+                }
+                else
+                {
+                    LoadMessages(_currentConversationId);
+                }
             }
 
             tmrUpdate.Start();
         }
 
-        private void LoadConversations()
+        private void LoadMyConversations()
         {
-            int selectedId = _currentConversationId;
-            var list = _repo.GetUserConversations(UserSession.Id);
+            _myConversations = _repo.GetUserConversations(UserSession.Id);
+            UpdateList(_myConversations);
+        }
 
-            lstConversations.Items.Clear();
-            foreach (var c in list)
+        private void txtSearchChat_TextChanged(object sender, EventArgs e)
+        {
+            string term = txtSearchChat.Text.Trim();
+            if (string.IsNullOrEmpty(term))
             {
-                lstConversations.Items.Add(c);
-                if (c.Id == selectedId) lstConversations.SelectedItem = c;
+                UpdateList(_myConversations);
+            }
+            else
+            {
+                var searchResults = _repo.SearchUsers(term, UserSession.Id);
+                UpdateList(searchResults);
+            }
+        }
+
+        private void UpdateList(List<Conversation> items)
+        {
+            var selected = lstConversations.SelectedItem as Conversation;
+            lstConversations.Items.Clear();
+            foreach (var item in items) lstConversations.Items.Add(item);
+
+            // Tenta restaurar seleção
+            if (selected != null)
+            {
+                foreach (Conversation c in lstConversations.Items)
+                {
+                    if (c.TargetUserId == selected.TargetUserId)
+                    {
+                        lstConversations.SelectedItem = c;
+                        break;
+                    }
+                }
+            }
+        }
+
+        private void lstConversations_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (lstConversations.SelectedItem is Conversation c)
+            {
+                // Se for resultado de busca (Id=0), cria o chat
+                if (c.Id == 0)
+                {
+                    c.Id = _repo.StartPrivateChat(UserSession.Id, c.TargetUserId);
+                    if (!_myConversations.Any(x => x.Id == c.Id)) _myConversations.Insert(0, c);
+                }
+
+                lblChatTitle.Text = c.Title;
+                _currentConversationId = c.Id;
+                _lastMessageCount = -1; // Força recarregar
+                LoadMessages(c.Id);
             }
         }
 
         private void LoadMessages(int conversationId)
         {
-            _currentConversationId = conversationId;
             var msgs = _repo.GetMessages(conversationId);
-
-            // Otimização simples: só recria se mudou a quantidade
-            // Num app real, verificaria ID da última mensagem
             if (msgs.Count == _lastMessageCount) return;
 
             flowMessages.SuspendLayout();
@@ -71,28 +123,37 @@ namespace Robozzle
             {
                 var bubble = new MessageBubble(msg);
 
-                // Hack para alinhar no FlowLayoutPanel
+                // Container para layout
                 Panel container = new Panel();
-                container.AutoSize = true;
-                container.Width = flowMessages.Width - 25;
+                container.AutoSize = false;
+                container.Width = flowMessages.ClientSize.Width - 25;
+                container.Height = bubble.Height + 10;
                 container.BackColor = Color.Transparent;
 
-                bubble.Location = msg.IsMine
-                    ? new Point(container.Width - bubble.Width, 0)
-                    : new Point(0, 0);
+                if (msg.IsMine)
+                    bubble.Location = new Point(container.Width - bubble.Width, 0);
+                else
+                    bubble.Location = new Point(0, 0);
 
                 container.Controls.Add(bubble);
-                container.Height = bubble.Height + 5;
-
                 flowMessages.Controls.Add(container);
             }
 
-            // Scroll para o fim
             if (flowMessages.Controls.Count > 0)
                 flowMessages.ScrollControlIntoView(flowMessages.Controls[flowMessages.Controls.Count - 1]);
 
             flowMessages.ResumeLayout();
             _lastMessageCount = msgs.Count;
+        }
+
+        private void txtMessage_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                if (e.Shift) return; // Nova linha
+                e.SuppressKeyPress = true; // Remove som
+                btnSend.PerformClick();
+            }
         }
 
         private void btnSend_Click(object sender, EventArgs e)
@@ -103,56 +164,48 @@ namespace Robozzle
 
             _repo.SendMessage(_currentConversationId, UserSession.Id, text);
             txtMessage.Clear();
-            LoadMessages(_currentConversationId); // Atualiza imediato
+            LoadMessages(_currentConversationId);
+            LoadMyConversations(); // Atualiza a lista lateral
         }
 
         private void tmrUpdate_Tick(object sender, EventArgs e)
         {
-            // Atualiza mensagens da conversa atual
-            if (_currentConversationId > 0)
-                LoadMessages(_currentConversationId);
+            if (_currentConversationId > 0) LoadMessages(_currentConversationId);
         }
 
-        private void lstConversations_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (lstConversations.SelectedItem is Conversation c)
-            {
-                lblChatTitle.Text = c.Title;
-                _lastMessageCount = -1; // Força recarregar
-                LoadMessages(c.Id);
-            }
-        }
-
-        // Desenha a lista de conversas customizada (Avatar + Nome)
         private void lstConversations_DrawItem(object sender, DrawItemEventArgs e)
         {
-            if (e.Index < 0) return;
+            if (e.Index < 0 || e.Index >= lstConversations.Items.Count) return;
             Conversation item = (Conversation)lstConversations.Items[e.Index];
 
             e.DrawBackground();
             bool isSelected = (e.State & DrawItemState.Selected) == DrawItemState.Selected;
-            Brush textBrush = isSelected ? Brushes.White : Brushes.Black;
-            if (UserSession.Theme == "dark" && !isSelected) textBrush = Brushes.White;
+            Brush textBrush = (UserSession.Theme == "dark" || isSelected) ? Brushes.White : Brushes.Black;
+            if (UserSession.Theme == "light" && !isSelected) textBrush = Brushes.Black;
 
-            // Avatar
-            if (item.Avatar != null && item.Avatar.Length > 0)
+            // Avatar com try/catch para não travar
+            try
             {
-                using (var ms = new MemoryStream(item.Avatar))
-                using (var img = Image.FromStream(ms))
-                    e.Graphics.DrawImage(img, e.Bounds.X + 5, e.Bounds.Y + 5, 30, 30);
+                if (item.Avatar != null && item.Avatar.Length > 0)
+                {
+                    using (var ms = new MemoryStream(item.Avatar))
+                    using (var img = Image.FromStream(ms))
+                        e.Graphics.DrawImage(img, e.Bounds.X + 5, e.Bounds.Y + 5, 40, 40);
+                }
+                else
+                    e.Graphics.FillEllipse(Brushes.Gray, e.Bounds.X + 5, e.Bounds.Y + 5, 40, 40);
             }
-            else
-            {
-                e.Graphics.FillEllipse(Brushes.Gray, e.Bounds.X + 5, e.Bounds.Y + 5, 30, 30);
-            }
+            catch { e.Graphics.FillEllipse(Brushes.IndianRed, e.Bounds.X + 5, e.Bounds.Y + 5, 40, 40); }
 
             // Nome
-            e.Graphics.DrawString(item.Title, new Font("Segoe UI", 10, FontStyle.Bold), textBrush, e.Bounds.X + 45, e.Bounds.Y + 5);
+            e.Graphics.DrawString(item.Title, new Font("Segoe UI", 11, FontStyle.Bold), textBrush, e.Bounds.X + 55, e.Bounds.Y + 5);
 
-            // Última Mensagem (Cinza)
+            // Mensagem
             if (!string.IsNullOrEmpty(item.LastMessage))
-                e.Graphics.DrawString(item.LastMessage, new Font("Segoe UI", 8), Brushes.Gray, e.Bounds.X + 45, e.Bounds.Y + 22);
-
+            {
+                string msg = item.LastMessage.Length > 30 ? item.LastMessage.Substring(0, 30) + "..." : item.LastMessage;
+                e.Graphics.DrawString(msg, new Font("Segoe UI", 9), Brushes.Gray, e.Bounds.X + 55, e.Bounds.Y + 28);
+            }
             e.DrawFocusRectangle();
         }
     }

@@ -6,16 +6,16 @@ namespace RobozllueApp
 {
     public class ChatRepository
     {
-        // Lista as conversas do usuário logado
+        // Busca conversas existentes
         public List<Conversation> GetUserConversations(int userId)
         {
             var list = new List<Conversation>();
             using (var conn = Database.GetConnection())
             {
-                // Busca conversas privadas e pega o nome/avatar do OUTRO participante
+                // Agora pegamos também o 'other.user_id'
                 string sql = @"
                     SELECT c.id, c.last_message_at, 
-                           u.nome, u.avatar_image,
+                           u.id as target_uid, u.nome, u.avatar_image,
                            (SELECT content FROM conversation_messages m WHERE m.conversation_id = c.id ORDER BY m.created_at DESC LIMIT 1) as last_msg
                     FROM conversations c
                     JOIN conversation_participants me ON c.id = me.conversation_id
@@ -34,7 +34,8 @@ namespace RobozllueApp
                             list.Add(new Conversation
                             {
                                 Id = r.GetInt32("id"),
-                                Title = r.GetString("nome"), // Nome do amigo
+                                TargetUserId = r.GetInt32("target_uid"), // <--- Preenchendo
+                                Title = r.GetString("nome"),
                                 Avatar = r.IsDBNull(r.GetOrdinal("avatar_image")) ? null : (byte[])r["avatar_image"],
                                 LastMessage = r.IsDBNull(r.GetOrdinal("last_msg")) ? "" : r.GetString("last_msg"),
                                 LastMessageDate = r.IsDBNull(r.GetOrdinal("last_message_at")) ? DateTime.MinValue : r.GetDateTime("last_message_at")
@@ -46,7 +47,42 @@ namespace RobozllueApp
             return list;
         }
 
-        // Pega mensagens de uma conversa específica
+        // NOVO: Pesquisa usuários globais para iniciar conversa
+        public List<Conversation> SearchUsers(string term, int myId)
+        {
+            var list = new List<Conversation>();
+            using (var conn = Database.GetConnection())
+            {
+                string sql = @"SELECT id, nome, avatar_image FROM users 
+                               WHERE nome LIKE @term AND id != @me 
+                               LIMIT 20";
+
+                using (var cmd = new MySqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@term", "%" + term + "%");
+                    cmd.Parameters.AddWithValue("@me", myId);
+
+                    using (var r = cmd.ExecuteReader())
+                    {
+                        while (r.Read())
+                        {
+                            // Retorna como uma 'Conversation' fake (Id=0)
+                            list.Add(new Conversation
+                            {
+                                Id = 0, // 0 indica que ainda não abrimos o chat
+                                TargetUserId = r.GetInt32("id"),
+                                Title = r.GetString("nome"),
+                                Avatar = r.IsDBNull(r.GetOrdinal("avatar_image")) ? null : (byte[])r["avatar_image"],
+                                LastMessage = "Novo Chat", // Indicador visual
+                                LastMessageDate = DateTime.Now
+                            });
+                        }
+                    }
+                }
+            }
+            return list;
+        }
+
         public List<ChatMessage> GetMessages(int conversationId)
         {
             var list = new List<ChatMessage>();
@@ -56,7 +92,8 @@ namespace RobozllueApp
                                FROM conversation_messages m
                                JOIN users u ON m.sender_id = u.id
                                WHERE m.conversation_id = @cid 
-                               ORDER BY m.created_at ASC";
+                               ORDER BY m.created_at DESC 
+                               LIMIT 50";
 
                 using (var cmd = new MySqlCommand(sql, conn))
                 {
@@ -77,17 +114,16 @@ namespace RobozllueApp
                     }
                 }
             }
+            list.Reverse();
             return list;
         }
 
-        // Envia mensagem
         public void SendMessage(int conversationId, int senderId, string content)
         {
             using (var conn = Database.GetConnection())
             {
-                // 1. Insere Mensagem
                 string sqlMsg = @"INSERT INTO conversation_messages (conversation_id, sender_id, content, read_by) 
-                                  VALUES (@cid, @sid, @content, '[]')"; // JSON vazio para read_by
+                                  VALUES (@cid, @sid, @content, '[]')";
                 using (var cmd = new MySqlCommand(sqlMsg, conn))
                 {
                     cmd.Parameters.AddWithValue("@cid", conversationId);
@@ -96,7 +132,6 @@ namespace RobozllueApp
                     cmd.ExecuteNonQuery();
                 }
 
-                // 2. Atualiza data da conversa (para subir no topo)
                 string sqlUpdate = "UPDATE conversations SET last_message_at = NOW() WHERE id = @cid";
                 using (var cmd = new MySqlCommand(sqlUpdate, conn))
                 {
@@ -106,12 +141,10 @@ namespace RobozllueApp
             }
         }
 
-        // Cria ou recupera uma conversa privada (usado no botão "Mensagem" do perfil)
         public int StartPrivateChat(int myId, int targetId)
         {
             using (var conn = Database.GetConnection())
             {
-                // 1. Verifica se já existe conversa entre os dois
                 string checkSql = @"
                     SELECT c.id FROM conversations c
                     JOIN conversation_participants p1 ON c.id = p1.conversation_id
@@ -123,10 +156,9 @@ namespace RobozllueApp
                     cmd.Parameters.AddWithValue("@u1", myId);
                     cmd.Parameters.AddWithValue("@u2", targetId);
                     var result = cmd.ExecuteScalar();
-                    if (result != null) return Convert.ToInt32(result); // Retorna ID existente
+                    if (result != null) return Convert.ToInt32(result);
                 }
 
-                // 2. Se não existe, cria nova conversa
                 string createConv = "INSERT INTO conversations (type, created_at, last_message_at) VALUES ('private', NOW(), NOW()); SELECT LAST_INSERT_ID();";
                 int newId;
                 using (var cmd = new MySqlCommand(createConv, conn))
@@ -134,7 +166,6 @@ namespace RobozllueApp
                     newId = Convert.ToInt32(cmd.ExecuteScalar());
                 }
 
-                // 3. Adiciona participantes
                 string addPart = "INSERT INTO conversation_participants (conversation_id, user_id) VALUES (@cid, @u1), (@cid, @u2)";
                 using (var cmd = new MySqlCommand(addPart, conn))
                 {

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace RobozllueApp
 {
@@ -8,8 +9,6 @@ namespace RobozllueApp
         public string Title { get; set; } = string.Empty;
         public string Difficulty { get; set; } = string.Empty;
         public LevelData Data { get; set; } = new LevelData();
-
-        // Novos campos para o card social
         public int AuthorId { get; set; }
         public string AuthorName { get; set; } = "Desconhecido";
         public byte[]? AuthorAvatarBytes { get; set; }
@@ -46,8 +45,9 @@ namespace RobozllueApp
     public class Conversation
     {
         public int Id { get; set; }
-        public string Title { get; set; } = string.Empty; // Nome do outro usuário
-        public byte[]? Avatar { get; set; } // Avatar do outro usuário
+        public int TargetUserId { get; set; } // <--- CAMPO NOVO IMPORTANTE
+        public string Title { get; set; } = string.Empty;
+        public byte[]? Avatar { get; set; }
         public string LastMessage { get; set; } = "";
         public DateTime LastMessageDate { get; set; }
     }
@@ -59,6 +59,6 @@ namespace RobozllueApp
         public string SenderName { get; set; } = string.Empty;
         public string Content { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
-        public bool IsMine => SenderId == UserSession.Id; // Ajuda a saber se fui eu que mandei
+        public bool IsMine => SenderId == UserSession.Id;
     }
 }

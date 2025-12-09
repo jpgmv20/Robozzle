@@ -389,57 +389,47 @@ namespace Robozzle
 
 
         private void UpdateQueueView()
-
         {
-
             flpExecution.SuspendLayout();
-
             flpExecution.Controls.Clear();
 
             if (_engine != null)
-
             {
-
+                // Pega os próximos 15 comandos
                 var slots = _engine.GetNextCommandsPreview(15);
 
                 foreach (var slot in slots)
-
                 {
-
                     Label lbl = new Label();
-
                     lbl.Size = new Size(40, 40);
-
                     lbl.Margin = new Padding(2);
-
                     lbl.TextAlign = ContentAlignment.MiddleCenter;
 
-                    lbl.Font = new Font("Segoe UI Symbol", 12F, FontStyle.Bold);
+                    // Fonte maior e negrito para os símbolos ficarem visíveis
+                    lbl.Font = new Font("Segoe UI Symbol", 14F, FontStyle.Bold);
 
-                    lbl.BorderStyle = BorderStyle.FixedSingle; // Borda fina para parecer botão
+                    lbl.BorderStyle = BorderStyle.FixedSingle;
 
+                    // --- CORREÇÃO DE CORES DA BARRA DE EXECUÇÃO ---
 
-
+                    // 1. Define a cor de fundo baseada na condição
                     if (slot.ConditionColor == "blue") lbl.BackColor = Color.LightBlue;
-
                     else if (slot.ConditionColor == "green") lbl.BackColor = Color.LightGreen;
-
                     else if (slot.ConditionColor == "red") lbl.BackColor = Color.LightPink;
-
                     else lbl.BackColor = Color.White;
 
+                    // 2. FORÇA A COR DO TEXTO PARA PRETO
+                    // (Isso impede que o tema escuro deixe o texto branco no fundo claro)
+                    lbl.ForeColor = Color.Black;
 
-
+                    // 3. Define o símbolo
                     lbl.Text = GetSymbol(slot.Action);
 
                     flpExecution.Controls.Add(lbl);
-
                 }
-
             }
 
             flpExecution.ResumeLayout();
-
         }
 
 
@@ -553,23 +543,21 @@ namespace Robozzle
 
 
         private string GetSymbol(string cmd)
-
         {
-
+            // Movimento
             if (cmd == "FORWARD") return "⬆";
-
             if (cmd == "TURN_LEFT") return "↰";
-
             if (cmd == "TURN_RIGHT") return "↱";
 
-            if (cmd == "PAINT_BLUE") return "🖌️🔵";
+            // Pintura (Emojis para simular os ícones de pincel)
+            if (cmd == "PAINT_BLUE") return "🖌🔵";
+            if (cmd == "PAINT_GREEN") return "🖌🟢";
+            if (cmd == "PAINT_RED") return "🖌🔴";
 
-            if (cmd == "PAINT_GREEN") return "🖌️🟢";
+            // Funções
+            if (cmd.StartsWith("F")) return cmd; // F0, F1, etc.
 
-            if (cmd == "PAINT_RED") return "🖌️🔴";
-
-            return cmd;
-
+            return cmd; // Retorna o texto original se não achar símbolo
         }
 
 

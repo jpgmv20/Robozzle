@@ -19,7 +19,6 @@ namespace Robozzle
 
         public static void ApplyTheme(Form form)
         {
-            // Verifica a preferência na sessão
             bool isDark = RobozllueApp.UserSession.Theme == "dark";
 
             Color back = isDark ? DarkBack : LightBack;
@@ -38,7 +37,6 @@ namespace Robozzle
 
         private static void ApplyToControl(Control c, Color back, Color surface, Color text, Color ctrlColor)
         {
-            // Aplica cores baseadas no tipo de controle
             if (c is Panel || c is GroupBox)
             {
                 c.BackColor = (c.Name.Contains("Sidebar") || c.Name.Contains("Container")) ? back : surface;
@@ -46,12 +44,37 @@ namespace Robozzle
             }
             else if (c is Button btn)
             {
-                // Botões específicos mantêm suas cores (Play/Reset), outros seguem o tema
-                if (!btn.Name.Contains("Play") && !btn.Name.Contains("Reset") && !btn.Name.Contains("Save"))
+                // --- BOTÕES COM CORES ESPECIAIS (PINCÉIS, SETAS, CONDICIONAIS) ---
+
+                string tag = btn.Tag?.ToString() ?? "";
+
+                // 1. Verifica pela TAG ou pelo PAINEL
+                if (tag.Contains("PAINT") ||
+                    tag.Contains("COND") ||
+                    tag.Contains("color_") ||
+                    tag.Contains("symbol_") ||
+                    tag.Contains("dir_") ||
+                    (btn.Parent != null && (btn.Parent.Name == "pnlPalette" || btn.Parent.Name == "pnlFunctions" || btn.Parent.Name == "flowTools")))
                 {
-                    btn.BackColor = ctrlColor;
-                    btn.ForeColor = text;
+                    // Força LETRA PRETA para garantir contraste no fundo colorido
+                    btn.ForeColor = Color.Black;
+                    return; // Sai e não aplica a cor cinza do tema
                 }
+
+                // 2. Botões de Ação do Sistema (Play, Reset, etc)
+                if (btn.Name.Contains("Play") ||
+                    btn.Name.Contains("Reset") ||
+                    btn.Name.Contains("Save") ||
+                    btn.Name.Contains("Send"))
+                {
+                    // Mantém a cor original deles (Verde/Vermelho), mas garante texto legível
+                    btn.ForeColor = Color.White;
+                    return;
+                }
+
+                // --- TEMA PADRÃO (Para botões comuns) ---
+                btn.BackColor = ctrlColor;
+                btn.ForeColor = text;
             }
             else if (c is TextBox || c is ListBox || c is ComboBox || c is NumericUpDown)
             {
@@ -63,7 +86,6 @@ namespace Robozzle
                 c.ForeColor = text;
             }
 
-            // Recursão para controles filhos
             foreach (Control child in c.Controls)
             {
                 ApplyToControl(child, back, surface, text, ctrlColor);

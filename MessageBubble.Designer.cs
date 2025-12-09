@@ -28,60 +28,62 @@
         /// </summary>
         private void InitializeComponent()
         {
-            panelBackground = new Panel();
-            lblMessage = new Label();
-            lblTime = new Label();
-            panelBackground.SuspendLayout();
-            SuspendLayout();
+            this.panelBackground = new System.Windows.Forms.Panel();
+            this.lblMessage = new System.Windows.Forms.Label();
+            this.lblTime = new System.Windows.Forms.Label();
+            this.panelBackground.SuspendLayout();
+            this.SuspendLayout();
             // 
             // panelBackground
             // 
-            panelBackground.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            panelBackground.BackColor = Color.WhiteSmoke;
-            panelBackground.Controls.Add(lblMessage);
-            panelBackground.Controls.Add(lblTime);
-            panelBackground.Location = new Point(3, 3);
-            panelBackground.Name = "panelBackground";
-            panelBackground.Padding = new Padding(10);
-            panelBackground.Size = new Size(268, 65);
-            panelBackground.TabIndex = 0;
+            this.panelBackground.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.panelBackground.BackColor = System.Drawing.Color.WhiteSmoke;
+            this.panelBackground.Controls.Add(this.lblMessage);
+            this.panelBackground.Controls.Add(this.lblTime);
+            this.panelBackground.Location = new System.Drawing.Point(3, 3);
+            this.panelBackground.Name = "panelBackground";
+            this.panelBackground.Padding = new System.Windows.Forms.Padding(10);
+            this.panelBackground.Size = new System.Drawing.Size(268, 65);
+            this.panelBackground.TabIndex = 0;
             // 
             // lblMessage
             // 
-            lblMessage.AutoSize = true;
-            lblMessage.Dock = DockStyle.Top;
-            lblMessage.Font = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            lblMessage.Location = new Point(10, 10);
-            lblMessage.MaximumSize = new Size(250, 0);
-            lblMessage.Name = "lblMessage";
-            lblMessage.Size = new Size(76, 19);
-            lblMessage.TabIndex = 0;
-            lblMessage.Text = "Mensagem";
+            this.lblMessage.AutoSize = true;
+            this.lblMessage.Dock = System.Windows.Forms.DockStyle.Top;
+            this.lblMessage.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.lblMessage.Location = new System.Drawing.Point(10, 10);
+            this.lblMessage.MaximumSize = new System.Drawing.Size(250, 0);
+            this.lblMessage.Name = "lblMessage";
+            this.lblMessage.Size = new System.Drawing.Size(76, 19);
+            this.lblMessage.TabIndex = 0;
+            this.lblMessage.Text = "Mensagem";
             // 
             // lblTime
             // 
-            lblTime.AutoSize = true;
-            lblTime.Dock = DockStyle.Bottom;
-            lblTime.Font = new Font("Segoe UI", 7F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            lblTime.ForeColor = Color.Gray;
-            lblTime.Location = new Point(10, 43);
-            lblTime.Name = "lblTime";
-            lblTime.Size = new Size(29, 12);
-            lblTime.TabIndex = 1;
-            lblTime.Text = "00:00";
-            lblTime.TextAlign = ContentAlignment.BottomRight;
+            this.lblTime.AutoSize = true;
+            this.lblTime.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.lblTime.Font = new System.Drawing.Font("Segoe UI", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.lblTime.ForeColor = System.Drawing.Color.Gray;
+            this.lblTime.Location = new System.Drawing.Point(10, 43);
+            this.lblTime.Name = "lblTime";
+            this.lblTime.Size = new System.Drawing.Size(29, 12);
+            this.lblTime.TabIndex = 1;
+            this.lblTime.Text = "00:00";
+            this.lblTime.TextAlign = System.Drawing.ContentAlignment.BottomRight;
             // 
             // MessageBubble
             // 
-            AutoScaleDimensions = new SizeF(6F, 13F);
-            AutoScaleMode = AutoScaleMode.Font;
-            BackColor = Color.Transparent;
-            Controls.Add(panelBackground);
-            Name = "MessageBubble";
-            Size = new Size(274, 71);
-            panelBackground.ResumeLayout(false);
-            panelBackground.PerformLayout();
-            ResumeLayout(false);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackColor = System.Drawing.Color.Transparent;
+            this.Controls.Add(this.panelBackground);
+            this.Name = "MessageBubble";
+            this.Size = new System.Drawing.Size(274, 71);
+            this.panelBackground.ResumeLayout(false);
+            this.panelBackground.PerformLayout();
+            this.ResumeLayout(false);
 
         }
 
