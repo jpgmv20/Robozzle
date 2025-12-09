@@ -42,4 +42,23 @@ namespace RobozllueApp
         public string Action { get; set; } = "";
         public string ConditionColor { get; set; } = "none";
     }
+
+    public class Conversation
+    {
+        public int Id { get; set; }
+        public string Title { get; set; } = string.Empty; // Nome do outro usuário
+        public byte[]? Avatar { get; set; } // Avatar do outro usuário
+        public string LastMessage { get; set; } = "";
+        public DateTime LastMessageDate { get; set; }
+    }
+
+    public class ChatMessage
+    {
+        public int Id { get; set; }
+        public int SenderId { get; set; }
+        public string SenderName { get; set; } = string.Empty;
+        public string Content { get; set; } = string.Empty;
+        public DateTime CreatedAt { get; set; }
+        public bool IsMine => SenderId == UserSession.Id; // Ajuda a saber se fui eu que mandei
+    }
 }

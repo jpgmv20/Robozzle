@@ -343,5 +343,13 @@ namespace Robozzle
             ThemeManager.ApplyTheme(editor); this.Hide(); editor.ShowDialog(); this.Show();
             if (cmbSearchType.SelectedIndex == 0) CarregarFasesDoBanco();
         }
+
+        private void btnChat_Click(object sender, EventArgs e)
+        {
+            ChatForm chat = new ChatForm();
+            this.Hide();
+            chat.ShowDialog();
+            this.Show();
+        }
     }
 }

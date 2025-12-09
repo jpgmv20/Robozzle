@@ -248,5 +248,19 @@ namespace Robozzle
             UserListForm list = new UserListForm(_targetUserId, false);
             this.Hide(); list.ShowDialog(); this.Show();
         }
+
+        private void btnMessage_Click(object sender, EventArgs e)
+        {
+            if (_isMyProfile) return;
+
+            ChatRepository repo = new ChatRepository();
+            // Cria ou pega conversa existente
+            int convId = repo.StartPrivateChat(UserSession.Id, _targetUserId);
+
+            ChatForm chat = new ChatForm(convId);
+            this.Hide();
+            chat.ShowDialog();
+            this.Show();
+        }
     }
 }
