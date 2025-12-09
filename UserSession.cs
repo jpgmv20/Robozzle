@@ -1,15 +1,16 @@
-﻿using System.Drawing; // Necessário para usar a classe Image
+﻿using System.Drawing;
 
-namespace RobozllueApp // Certifique-se de que o namespace é o mesmo usado no restante do projeto
+namespace RobozllueApp
 {
     public static class UserSession
     {
         public static int Id { get; set; }
         public static string Nome { get; set; } = string.Empty;
         public static string Email { get; set; } = string.Empty;
-
-        // ESTA É A PROPRIEDADE QUE ESTAVA FALTANDO
         public static Image? Avatar { get; set; }
+
+        // NOVO CAMPO
+        public static string Theme { get; set; } = "light";
 
         public static bool IsLoggedIn => Id > 0;
 
@@ -18,12 +19,8 @@ namespace RobozllueApp // Certifique-se de que o namespace é o mesmo usado no r
             Id = 0;
             Nome = string.Empty;
             Email = string.Empty;
-
-            if (Avatar != null)
-            {
-                Avatar.Dispose(); // Libera a memória da imagem
-                Avatar = null;
-            }
+            Theme = "light"; // Reseta tema ao sair
+            if (Avatar != null) { Avatar.Dispose(); Avatar = null; }
         }
     }
 }

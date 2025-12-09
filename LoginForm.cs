@@ -1,4 +1,5 @@
 ﻿using MySql.Data.MySqlClient;
+using Newtonsoft.Json;
 using RobozllueApp;
 using System;
 using System.Drawing;
@@ -18,7 +19,6 @@ namespace Robozzle
 
         private void btnLogin_Click(object sender, EventArgs e)
         {
-            // Pega o texto do campo (agora serve para email ou nome)
             string loginInput = txtEmail.Text.Trim();
             string senha = txtSenha.Text;
 
@@ -32,8 +32,7 @@ namespace Robozzle
             {
                 using (var conn = Database.GetConnection())
                 {
-                    // --- MUDANÇA AQUI: Busca por Email OU Nome ---
-                    string sql = "SELECT id, nome, email, password, avatar_image FROM users WHERE email = @login OR nome = @login LIMIT 1";
+                    string sql = "SELECT id, nome, email, password, avatar_image, config FROM users WHERE email = @login OR nome = @login LIMIT 1";
 
                     using (var cmd = new MySqlCommand(sql, conn))
                     {
@@ -51,14 +50,38 @@ namespace Robozzle
                                     UserSession.Nome = reader.GetString("nome");
                                     UserSession.Email = reader.GetString("email");
 
+                                    // --- CORREÇÃO DO ERRO OUTOFMEMORY ---
                                     if (!reader.IsDBNull(reader.GetOrdinal("avatar_image")))
                                     {
                                         byte[] imgBytes = (byte[])reader["avatar_image"];
                                         if (imgBytes.Length > 0)
                                         {
                                             using (var ms = new MemoryStream(imgBytes))
-                                                UserSession.Avatar = Image.FromStream(ms);
+                                            {
+                                                // Carrega a imagem do stream
+                                                using (Image tempImg = Image.FromStream(ms))
+                                                {
+                                                    // Cria uma CÓPIA em memória (Bitmap) que não depende do stream 'ms'
+                                                    UserSession.Avatar = new Bitmap(tempImg);
+                                                }
+                                            }
+                                            // Agora o 'ms' pode fechar sem quebrar o UserSession.Avatar
                                         }
+                                    }
+
+                                    // Carrega Configuração (Tema)
+                                    if (!reader.IsDBNull(reader.GetOrdinal("config")))
+                                    {
+                                        string configJson = reader.GetString("config");
+                                        try
+                                        {
+                                            dynamic config = JsonConvert.DeserializeObject(configJson);
+                                            if (config != null && config.tema != null)
+                                            {
+                                                UserSession.Theme = config.tema;
+                                            }
+                                        }
+                                        catch { /* Ignora erro de JSON */ }
                                     }
 
                                     HomeForm home = new HomeForm();

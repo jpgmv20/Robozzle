@@ -328,25 +328,51 @@ namespace Robozzle
 
         }
 
-
-
-        private void btnReset_Click(object? sender, EventArgs e)
-
+        // --- MÉTODO PRINCIPAL DE RESET (CORRIGIDO) ---
+        private void ResetGame()
         {
+            if (_originalData == null) return;
 
-            gameTimer.Stop();
+            // 1. Cria uma cópia LIMPA dos dados originais
+            var json = JsonConvert.SerializeObject(_originalData);
+            var clonedData = JsonConvert.DeserializeObject<LevelData>(json);
 
-            _engine?.Reset();
+            if (clonedData == null) return;
 
+            // 2. Cria nova engine (Neste momento, a memória de comandos dela está VAZIA)
+            _engine = new GameEngine(clonedData);
+
+            // Conecta os eventos
+            _engine.OnStep += UpdateGameView;
+            _engine.OnVictory += HandleVictory;
+            _engine.OnDefeat += HandleDefeat;
+
+            // 3. COPIA o código que está nos botões da tela para a memória da Engine
+            UpdateEngineFromUI();
+
+            // 4. IMPORTANTE: Reinicia a Engine AGORA que ela tem os comandos certos.
+            // Isso recarrega a função F0 na pilha de execução.
+            _engine.Reset();
+
+            // 5. Atualiza visual
             pbGrid.Invalidate();
-
             UpdateQueueView();
-
-            SetEditMode(true);
-
         }
 
 
+
+        private void btnReset_Click(object? sender, EventArgs e)
+        {
+            gameTimer.Stop();
+
+            // --- HARD RESET ---
+            // Recarrega o estado inicial puro a partir dos dados originais
+            ResetGame();
+
+            pbGrid.Invalidate();
+            UpdateQueueView();
+            SetEditMode(true);
+        }
 
         private void gameTimer_Tick(object sender, EventArgs e)
 
