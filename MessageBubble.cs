@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
-using System.ComponentModel; // <--- OBRIGATÓRIO para corrigir o erro de propriedade
+using System.ComponentModel;
+using RobozllueApp;
 
 namespace Robozzle
 {
@@ -13,31 +14,35 @@ namespace Robozzle
 
     public partial class MessageBubble : UserControl
     {
-        // 1. MANTENHA este construtor vazio (O Visual Studio precisa dele para o Designer funcionar)
+        // Construtor Vazio (Necessário para o Designer)
         public MessageBubble()
         {
             InitializeComponent();
         }
 
-        // 2. ADICIONE este novo construtor que aceita 1 argumento (o texto)
+        // Construtor para Texto simples
         public MessageBubble(string message)
-        {
-            InitializeComponent(); // Obrigatório chamar isso sempre primeiro
-            this.MessageText = message;
-            this.TimeText = DateTime.Now.ToString("HH:mm"); // Pega a hora atual automático
-            this.SetBubbleType(MessageType.Out); // Define um padrão (ex: mensagem enviada)
-        }
-
-        // 3. (OPCIONAL mas Recomendado) Adicione este para passar Texto e Tipo de uma vez
-        public MessageBubble(string message, MessageType type)
         {
             InitializeComponent();
             this.MessageText = message;
             this.TimeText = DateTime.Now.ToString("HH:mm");
-            this.SetBubbleType(type);
+            this.SetBubbleType(MessageType.Out);
         }
 
-        // --- CORREÇÃO: Atributos para o Visual Studio não dar erro ao salvar ---
+        // --- NOVO CONSTRUTOR: Resolve o erro do ChatForm ---
+        public MessageBubble(ChatMessage msg)
+        {
+            InitializeComponent();
+            this.MessageText = msg.Content;
+            this.TimeText = msg.CreatedAt.ToString("HH:mm");
+
+            // Define o lado e cor automaticamente
+            if (msg.IsMine)
+                SetBubbleType(MessageType.Out);
+            else
+                SetBubbleType(MessageType.In);
+        }
+
         [Category("Custom Properties")]
         [Description("Texto da mensagem")]
         [Browsable(true)]
@@ -52,7 +57,6 @@ namespace Robozzle
             }
         }
 
-        // --- CORREÇÃO: Atributos para o Visual Studio não dar erro ao salvar ---
         [Category("Custom Properties")]
         [Description("Hora da mensagem")]
         [Browsable(true)]
@@ -83,7 +87,6 @@ namespace Robozzle
 
         private void AdjustHeight()
         {
-            // Proteção: Só ajusta se os componentes já tiverem sido criados
             if (lblMessage != null && lblTime != null)
             {
                 int novaAltura = lblMessage.Height + lblTime.Height + 30;
@@ -91,7 +94,6 @@ namespace Robozzle
             }
         }
 
-        // Garante que o tamanho se ajusta assim que o componente é carregado
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);

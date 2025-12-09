@@ -22,12 +22,14 @@
             this.lblFollowers = new System.Windows.Forms.Label();
             this.lblFollowing = new System.Windows.Forms.Label();
             this.btnFollow = new System.Windows.Forms.Button();
+            this.btnMessage = new System.Windows.Forms.Button(); // <--- NOVO
             this.pnlCentral.SuspendLayout();
             this.grpConfig.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pbAvatar)).BeginInit();
             this.SuspendLayout();
             // pnlCentral
             this.pnlCentral.BackColor = System.Drawing.Color.White;
+            this.pnlCentral.Controls.Add(this.btnMessage); // <--- ADICIONAR
             this.pnlCentral.Controls.Add(this.btnFollow);
             this.pnlCentral.Controls.Add(this.lblFollowing);
             this.pnlCentral.Controls.Add(this.lblFollowers);
@@ -98,12 +100,26 @@
             this.btnFollow.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnFollow.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
             this.btnFollow.ForeColor = System.Drawing.Color.White;
-            this.btnFollow.Location = new System.Drawing.Point(125, 250);
+            this.btnFollow.Location = new System.Drawing.Point(50, 250);
             this.btnFollow.Name = "btnFollow";
-            this.btnFollow.Size = new System.Drawing.Size(150, 35);
+            this.btnFollow.Size = new System.Drawing.Size(145, 35);
             this.btnFollow.Text = "Seguir";
             this.btnFollow.UseVisualStyleBackColor = false;
             this.btnFollow.Click += new System.EventHandler(this.btnFollow_Click);
+            // 
+            // btnMessage (NOVO)
+            // 
+            this.btnMessage.BackColor = System.Drawing.Color.MediumSeaGreen;
+            this.btnMessage.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnMessage.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.btnMessage.ForeColor = System.Drawing.Color.White;
+            this.btnMessage.Location = new System.Drawing.Point(205, 250);
+            this.btnMessage.Name = "btnMessage";
+            this.btnMessage.Size = new System.Drawing.Size(145, 35);
+            this.btnMessage.Text = "Mensagem";
+            this.btnMessage.UseVisualStyleBackColor = false;
+            this.btnMessage.Click += new System.EventHandler(this.btnMessage_Click);
+
             // label1
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(50, 290);
@@ -173,6 +189,7 @@
         private System.Windows.Forms.Label lblFollowers;
         private System.Windows.Forms.Label lblFollowing;
         private System.Windows.Forms.Button btnFollow;
+        private System.Windows.Forms.Button btnMessage; // <--- NOVO
         private System.Windows.Forms.TextBox txtDesc;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.GroupBox grpConfig;
