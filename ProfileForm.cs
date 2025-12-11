@@ -195,7 +195,6 @@ namespace Robozzle
                 if (_newAvatarBytes != null && pbAvatar.Image != null)
                     UserSession.Avatar = new Bitmap(pbAvatar.Image);
 
-                MessageBox.Show("Salvo!");
                 this.Close();
             }
             catch (Exception ex) { MessageBox.Show("Erro ao salvar: " + ex.Message); }

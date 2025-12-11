@@ -319,7 +319,7 @@ namespace Robozzle
                         cmd.Parameters.AddWithValue("p_published", true);
                         cmd.ExecuteNonQuery();
 
-                        MessageBox.Show("Fase salva!");
+
                         this.Close();
                     }
                 }

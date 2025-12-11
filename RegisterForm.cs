@@ -104,7 +104,7 @@ namespace Robozzle
 
                         cmd.ExecuteNonQuery();
 
-                        MessageBox.Show("Cadastro realizado com sucesso!");
+
                         this.Close();
                     }
                 }

@@ -14,160 +14,160 @@
 
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
-            this.pnlGameContainer = new System.Windows.Forms.Panel();
-            this.flpExecution = new System.Windows.Forms.FlowLayoutPanel();
-            this.lblFunctionsTitle = new System.Windows.Forms.Label();
-            this.lblPaletteTitle = new System.Windows.Forms.Label();
-            this.lblQueue = new System.Windows.Forms.Label();
-            this.btnReset = new System.Windows.Forms.Button();
-            this.btnPlay = new System.Windows.Forms.Button();
-            this.pnlPalette = new System.Windows.Forms.FlowLayoutPanel();
-            this.pnlFunctions = new System.Windows.Forms.Panel();
-            this.pbGrid = new System.Windows.Forms.PictureBox();
-            this.gameTimer = new System.Windows.Forms.Timer(this.components);
-            this.pnlGameContainer.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pbGrid)).BeginInit();
-            this.SuspendLayout();
+            components = new System.ComponentModel.Container();
+            pnlGameContainer = new Panel();
+            flpExecution = new FlowLayoutPanel();
+            lblFunctionsTitle = new Label();
+            lblPaletteTitle = new Label();
+            lblQueue = new Label();
+            btnReset = new Button();
+            btnPlay = new Button();
+            pnlPalette = new FlowLayoutPanel();
+            pnlFunctions = new Panel();
+            pbGrid = new PictureBox();
+            gameTimer = new System.Windows.Forms.Timer(components);
+            pnlGameContainer.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)pbGrid).BeginInit();
+            SuspendLayout();
             // 
             // pnlGameContainer
             // 
-            this.pnlGameContainer.BackColor = System.Drawing.Color.WhiteSmoke;
-            this.pnlGameContainer.Controls.Add(this.flpExecution);
-            this.pnlGameContainer.Controls.Add(this.lblFunctionsTitle);
-            this.pnlGameContainer.Controls.Add(this.lblPaletteTitle);
-            this.pnlGameContainer.Controls.Add(this.lblQueue);
-            this.pnlGameContainer.Controls.Add(this.btnReset);
-            this.pnlGameContainer.Controls.Add(this.btnPlay);
-            this.pnlGameContainer.Controls.Add(this.pnlPalette);
-            this.pnlGameContainer.Controls.Add(this.pnlFunctions);
-            this.pnlGameContainer.Controls.Add(this.pbGrid);
-            this.pnlGameContainer.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pnlGameContainer.Location = new System.Drawing.Point(0, 0);
-            this.pnlGameContainer.Name = "pnlGameContainer";
-            this.pnlGameContainer.Size = new System.Drawing.Size(1000, 700);
-            this.pnlGameContainer.TabIndex = 0;
+            pnlGameContainer.BackColor = Color.WhiteSmoke;
+            pnlGameContainer.Controls.Add(flpExecution);
+            pnlGameContainer.Controls.Add(lblFunctionsTitle);
+            pnlGameContainer.Controls.Add(lblPaletteTitle);
+            pnlGameContainer.Controls.Add(lblQueue);
+            pnlGameContainer.Controls.Add(btnReset);
+            pnlGameContainer.Controls.Add(btnPlay);
+            pnlGameContainer.Controls.Add(pnlPalette);
+            pnlGameContainer.Controls.Add(pnlFunctions);
+            pnlGameContainer.Controls.Add(pbGrid);
+            pnlGameContainer.Dock = DockStyle.Fill;
+            pnlGameContainer.Location = new Point(0, 0);
+            pnlGameContainer.Name = "pnlGameContainer";
+            pnlGameContainer.Size = new Size(1000, 700);
+            pnlGameContainer.TabIndex = 0;
             // 
             // flpExecution
             // 
-            this.flpExecution.AutoScroll = true;
-            this.flpExecution.BackColor = System.Drawing.Color.White;
-            this.flpExecution.Location = new System.Drawing.Point(30, 350);
-            this.flpExecution.Name = "flpExecution";
-            this.flpExecution.Size = new System.Drawing.Size(700, 50);
-            this.flpExecution.TabIndex = 9;
-            this.flpExecution.WrapContents = false;
+            flpExecution.AutoScroll = true;
+            flpExecution.BackColor = Color.White;
+            flpExecution.Location = new Point(30, 350);
+            flpExecution.Name = "flpExecution";
+            flpExecution.Size = new Size(700, 50);
+            flpExecution.TabIndex = 9;
+            flpExecution.WrapContents = false;
             // 
             // lblFunctionsTitle
             // 
-            this.lblFunctionsTitle.AutoSize = true;
-            this.lblFunctionsTitle.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.lblFunctionsTitle.ForeColor = System.Drawing.Color.DimGray;
-            this.lblFunctionsTitle.Location = new System.Drawing.Point(260, 430);
-            this.lblFunctionsTitle.Name = "lblFunctionsTitle";
-            this.lblFunctionsTitle.Size = new System.Drawing.Size(61, 15);
-            this.lblFunctionsTitle.TabIndex = 8;
-            this.lblFunctionsTitle.Text = "FUNÇÕES";
+            lblFunctionsTitle.AutoSize = true;
+            lblFunctionsTitle.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            lblFunctionsTitle.ForeColor = Color.DimGray;
+            lblFunctionsTitle.Location = new Point(260, 430);
+            lblFunctionsTitle.Name = "lblFunctionsTitle";
+            lblFunctionsTitle.Size = new Size(60, 15);
+            lblFunctionsTitle.TabIndex = 8;
+            lblFunctionsTitle.Text = "FUNÇÕES";
             // 
             // lblPaletteTitle
             // 
-            this.lblPaletteTitle.AutoSize = true;
-            this.lblPaletteTitle.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.lblPaletteTitle.ForeColor = System.Drawing.Color.DimGray;
-            this.lblPaletteTitle.Location = new System.Drawing.Point(30, 430);
-            this.lblPaletteTitle.Name = "lblPaletteTitle";
-            this.lblPaletteTitle.Size = new System.Drawing.Size(78, 15);
-            this.lblPaletteTitle.TabIndex = 7;
-            this.lblPaletteTitle.Text = "COMANDOS";
+            lblPaletteTitle.AutoSize = true;
+            lblPaletteTitle.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            lblPaletteTitle.ForeColor = Color.DimGray;
+            lblPaletteTitle.Location = new Point(30, 430);
+            lblPaletteTitle.Name = "lblPaletteTitle";
+            lblPaletteTitle.Size = new Size(76, 15);
+            lblPaletteTitle.TabIndex = 7;
+            lblPaletteTitle.Text = "COMANDOS";
             // 
             // lblQueue
             // 
-            this.lblQueue.AutoSize = true;
-            this.lblQueue.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.lblQueue.ForeColor = System.Drawing.Color.DimGray;
-            this.lblQueue.Location = new System.Drawing.Point(30, 330);
-            this.lblQueue.Name = "lblQueue";
-            this.lblQueue.Size = new System.Drawing.Size(95, 15);
-            this.lblQueue.TabIndex = 6;
-            this.lblQueue.Text = "EM EXECUÇÃO:";
+            lblQueue.AutoSize = true;
+            lblQueue.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            lblQueue.ForeColor = Color.DimGray;
+            lblQueue.Location = new Point(30, 330);
+            lblQueue.Name = "lblQueue";
+            lblQueue.Size = new Size(90, 15);
+            lblQueue.TabIndex = 6;
+            lblQueue.Text = "EM EXECUÇÃO:";
             // 
             // btnReset
             // 
-            this.btnReset.BackColor = System.Drawing.Color.IndianRed;
-            this.btnReset.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnReset.FlatAppearance.BorderSize = 0;
-            this.btnReset.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnReset.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.btnReset.ForeColor = System.Drawing.Color.White;
-            this.btnReset.Location = new System.Drawing.Point(860, 350);
-            this.btnReset.Name = "btnReset";
-            this.btnReset.Size = new System.Drawing.Size(100, 50);
-            this.btnReset.TabIndex = 4;
-            this.btnReset.Text = "RESET ⟲";
-            this.btnReset.UseVisualStyleBackColor = false;
+            btnReset.BackColor = Color.IndianRed;
+            btnReset.Cursor = Cursors.Hand;
+            btnReset.FlatAppearance.BorderSize = 0;
+            btnReset.FlatStyle = FlatStyle.Flat;
+            btnReset.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            btnReset.ForeColor = Color.White;
+            btnReset.Location = new Point(860, 350);
+            btnReset.Name = "btnReset";
+            btnReset.Size = new Size(100, 50);
+            btnReset.TabIndex = 4;
+            btnReset.Text = "RESET ⟲";
+            btnReset.UseVisualStyleBackColor = false;
             // 
             // btnPlay
             // 
-            this.btnPlay.BackColor = System.Drawing.Color.MediumSeaGreen;
-            this.btnPlay.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnPlay.FlatAppearance.BorderSize = 0;
-            this.btnPlay.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnPlay.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
-            this.btnPlay.ForeColor = System.Drawing.Color.White;
-            this.btnPlay.Location = new System.Drawing.Point(750, 350);
-            this.btnPlay.Name = "btnPlay";
-            this.btnPlay.Size = new System.Drawing.Size(100, 50);
-            this.btnPlay.TabIndex = 3;
-            this.btnPlay.Text = "PLAY ▶";
-            this.btnPlay.UseVisualStyleBackColor = false;
-            this.btnPlay.Click += new System.EventHandler(this.btnPlay_Click);
+            btnPlay.BackColor = Color.MediumSeaGreen;
+            btnPlay.Cursor = Cursors.Hand;
+            btnPlay.FlatAppearance.BorderSize = 0;
+            btnPlay.FlatStyle = FlatStyle.Flat;
+            btnPlay.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            btnPlay.ForeColor = Color.White;
+            btnPlay.Location = new Point(750, 350);
+            btnPlay.Name = "btnPlay";
+            btnPlay.Size = new Size(100, 50);
+            btnPlay.TabIndex = 3;
+            btnPlay.Text = "PLAY ▶";
+            btnPlay.UseVisualStyleBackColor = false;
+            btnPlay.Click += btnPlay_Click;
             // 
             // pnlPalette
             // 
-            this.pnlPalette.BackColor = System.Drawing.Color.Transparent;
-            this.pnlPalette.Location = new System.Drawing.Point(30, 450);
-            this.pnlPalette.Name = "pnlPalette";
-            this.pnlPalette.Size = new System.Drawing.Size(200, 200);
-            this.pnlPalette.TabIndex = 2;
+            pnlPalette.BackColor = Color.Transparent;
+            pnlPalette.Location = new Point(30, 450);
+            pnlPalette.Name = "pnlPalette";
+            pnlPalette.Size = new Size(200, 200);
+            pnlPalette.TabIndex = 2;
             // 
             // pnlFunctions
             // 
-            this.pnlFunctions.AutoScroll = true;
-            this.pnlFunctions.BackColor = System.Drawing.Color.Transparent;
-            this.pnlFunctions.Location = new System.Drawing.Point(260, 450);
-            this.pnlFunctions.Name = "pnlFunctions";
-            this.pnlFunctions.Size = new System.Drawing.Size(700, 200);
-            this.pnlFunctions.TabIndex = 1;
+            pnlFunctions.AutoScroll = true;
+            pnlFunctions.BackColor = Color.Transparent;
+            pnlFunctions.Location = new Point(260, 450);
+            pnlFunctions.Name = "pnlFunctions";
+            pnlFunctions.Size = new Size(700, 200);
+            pnlFunctions.TabIndex = 1;
             // 
             // pbGrid
             // 
-            this.pbGrid.BackColor = System.Drawing.Color.White;
-            this.pbGrid.Location = new System.Drawing.Point(30, 20);
-            this.pbGrid.Name = "pbGrid";
-            this.pbGrid.Size = new System.Drawing.Size(940, 300);
-            this.pbGrid.TabIndex = 0;
-            this.pbGrid.TabStop = false;
-            this.pbGrid.Paint += new System.Windows.Forms.PaintEventHandler(this.pbGrid_Paint);
+            pbGrid.BackColor = Color.White;
+            pbGrid.Location = new Point(30, 20);
+            pbGrid.Name = "pbGrid";
+            pbGrid.Size = new Size(940, 300);
+            pbGrid.TabIndex = 0;
+            pbGrid.TabStop = false;
+            pbGrid.Paint += pbGrid_Paint;
             // 
             // gameTimer
             // 
-            this.gameTimer.Interval = 500;
-            this.gameTimer.Tick += new System.EventHandler(this.gameTimer_Tick);
+            gameTimer.Interval = 200;
+            gameTimer.Tick += gameTimer_Tick;
             // 
             // GameForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.Color.White;
-            this.ClientSize = new System.Drawing.Size(1000, 700);
-            this.Controls.Add(this.pnlGameContainer);
-            this.Name = "GameForm";
-            this.Text = "Robozzle Game";
-            this.Resize += new System.EventHandler(this.GameForm_Resize);
-            this.pnlGameContainer.ResumeLayout(false);
-            this.pnlGameContainer.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pbGrid)).EndInit();
-            this.ResumeLayout(false);
+            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleMode = AutoScaleMode.Font;
+            BackColor = Color.White;
+            ClientSize = new Size(1000, 700);
+            Controls.Add(pnlGameContainer);
+            Name = "GameForm";
+            Text = "Robozzle Game";
+            Resize += GameForm_Resize;
+            pnlGameContainer.ResumeLayout(false);
+            pnlGameContainer.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)pbGrid).EndInit();
+            ResumeLayout(false);
         }
 
         private System.Windows.Forms.Panel pnlGameContainer;

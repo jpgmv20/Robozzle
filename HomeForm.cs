@@ -21,8 +21,15 @@ namespace Robozzle
             InitializeComponent();
         }
 
+        private void HomeForm_OnShown (object sender, EventArgs e)
+        {
+            if (_cachedLevels.Count == 0) CarregarFasesDoBanco();
+            RenderLevelList(_cachedLevels);
+        }
+
         private void HomeForm_Load(object sender, EventArgs e)
         {
+
             ThemeManager.ApplyTheme(this);
             LoadUserAvatar();
 
@@ -279,7 +286,11 @@ namespace Robozzle
         {
             ProfileForm p = new ProfileForm(userId);
             this.Hide(); p.ShowDialog();
-            ThemeManager.ApplyTheme(this); LoadUserAvatar(); this.Show();
+            ThemeManager.ApplyTheme(this); 
+            LoadUserAvatar();
+            if (_cachedLevels.Count == 0) CarregarFasesDoBanco();
+            RenderLevelList(_cachedLevels);
+            this.Show();
         }
 
         private void MostrarMensagemVazio(string msg)

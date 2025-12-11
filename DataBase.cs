@@ -5,7 +5,7 @@ namespace RobozllueApp
     public static class Database
     {
         // Ajuste a senha se necessário (no seu config.php estava vazia)
-        private static string connectionString = "Server=localhost;Database=robozzle;User=root;Password=balsaMO1";
+        private static string connectionString = "Server=localhost;Database=robozzle;User=root;Password=";
 
         public static MySqlConnection GetConnection()
         {
