@@ -27,7 +27,11 @@ namespace RobozllueApp
         public event Action? OnStep;
 
         private Stack<CommandSlot> _commandStack;
-        private int _stepsTaken;
+
+        // --- CORREÇÃO AQUI: Propriedade Pública ---
+        public int StepsTaken { get; private set; }
+        // ------------------------------------------
+
         private const int MAX_STEPS = 2000;
 
         public GameEngine(LevelData levelData)
@@ -51,7 +55,7 @@ namespace RobozllueApp
         public void Reset()
         {
             _commandStack = new Stack<CommandSlot>();
-            _stepsTaken = 0;
+            StepsTaken = 0; // Alterado para a propriedade
             StarsCollected = 0;
             TotalStars = 0;
 
@@ -100,7 +104,7 @@ namespace RobozllueApp
         public void Tick()
         {
             if (_commandStack.Count == 0) return;
-            if (_stepsTaken >= MAX_STEPS) { OnDefeat?.Invoke(); return; }
+            if (StepsTaken >= MAX_STEPS) { OnDefeat?.Invoke(); return; } // Alterado
 
             CommandSlot cmd = _commandStack.Pop();
 
@@ -119,7 +123,7 @@ namespace RobozllueApp
                 }
             }
 
-            _stepsTaken++;
+            StepsTaken++; // Alterado
             ExecuteCommand(cmd);
             OnStep?.Invoke();
 
@@ -200,11 +204,9 @@ namespace RobozllueApp
                 Level.matrix[Player.Row][Player.Col].color = color;
         }
 
-        // --- ALTERADO: Retorna a lista de objetos, não strings, para a UI formatar ---
         public List<CommandSlot> GetNextCommandsPreview(int count)
         {
             if (_commandStack == null) return new List<CommandSlot>();
-            // Retorna clones para não afetar a pilha original se a UI tentar mexer
             return _commandStack.Take(count).Select(c => new CommandSlot { Action = c.Action, ConditionColor = c.ConditionColor }).ToList();
         }
     }

@@ -168,10 +168,7 @@
             this.pnlGameContainer.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pbGrid)).EndInit();
             this.ResumeLayout(false);
-
         }
-
-        #endregion
 
         private System.Windows.Forms.Panel pnlGameContainer;
         private System.Windows.Forms.PictureBox pbGrid;
@@ -184,5 +181,6 @@
         private System.Windows.Forms.Label lblQueue;
         private System.Windows.Forms.Label lblPaletteTitle;
         private System.Windows.Forms.Label lblFunctionsTitle;
+        #endregion
     }
 }

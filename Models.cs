@@ -12,6 +12,11 @@ namespace RobozllueApp
         public int AuthorId { get; set; }
         public string AuthorName { get; set; } = "Desconhecido";
         public byte[]? AuthorAvatarBytes { get; set; }
+
+        // Contadores
+        public int LikesCount { get; set; }
+        public int PlaysCount { get; set; }
+        public bool IsLikedByMe { get; set; }
     }
 
     public class LevelData
@@ -42,10 +47,22 @@ namespace RobozllueApp
         public string ConditionColor { get; set; } = "none";
     }
 
+    // --- NOVA CLASSE: COMENTÁRIOS ---
+    public class CommentEntity
+    {
+        public int Id { get; set; }
+        public int LevelId { get; set; }
+        public int UserId { get; set; }
+        public string UserName { get; set; } = string.Empty;
+        public byte[]? UserAvatar { get; set; }
+        public string Text { get; set; } = string.Empty;
+        public DateTime CreatedAt { get; set; }
+    }
+
     public class Conversation
     {
         public int Id { get; set; }
-        public int TargetUserId { get; set; } // <--- CAMPO NOVO IMPORTANTE
+        public int TargetUserId { get; set; }
         public string Title { get; set; } = string.Empty;
         public byte[]? Avatar { get; set; }
         public string LastMessage { get; set; } = "";

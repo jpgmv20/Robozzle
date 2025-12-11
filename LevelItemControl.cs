@@ -7,16 +7,13 @@ using System.Windows.Forms;
 
 namespace Robozzle
 {
-    // HERDA DE USERCONTROL
     public partial class LevelItemControl : UserControl
     {
         public LevelEntity LevelInfo { get; private set; }
 
-        // Eventos públicos para o HomeForm usar
         public event EventHandler<LevelEntity>? PlayRequested;
         public event EventHandler<int>? ProfileRequested;
 
-        // Construtor obrigatório
         public LevelItemControl(LevelEntity level)
         {
             InitializeComponent();
@@ -29,10 +26,21 @@ namespace Robozzle
             bool isDark = UserSession.Theme == "dark";
             this.BackColor = isDark ? Color.FromArgb(50, 50, 50) : Color.White;
             lblTitle.ForeColor = isDark ? Color.White : Color.Black;
+            lblStats.ForeColor = isDark ? Color.LightGray : Color.DimGray;
 
             lblTitle.Text = LevelInfo.Title;
             lblAuthorName.Text = "por " + LevelInfo.AuthorName;
 
+            // Stats
+            lblStats.Text = $"♥ {LevelInfo.LikesCount}   ▶ {LevelInfo.PlaysCount}";
+
+            // Cor do coração
+            if (LevelInfo.IsLikedByMe)
+                btnLike.ForeColor = Color.IndianRed;
+            else
+                btnLike.ForeColor = Color.LightGray;
+
+            // Dificuldade
             lblDifficulty.Text = LevelInfo.Difficulty.ToUpper();
             switch (LevelInfo.Difficulty.ToLower())
             {
@@ -43,6 +51,7 @@ namespace Robozzle
                 default: lblDifficulty.BackColor = Color.Gray; break;
             }
 
+            // Avatar
             if (LevelInfo.AuthorAvatarBytes != null && LevelInfo.AuthorAvatarBytes.Length > 0)
             {
                 try
@@ -54,20 +63,35 @@ namespace Robozzle
             }
             else
             {
-                // Carrega avatar padrão se não tiver
-                try
-                {
-                    string url = $"https://ui-avatars.com/api/?name={LevelInfo.AuthorName}&background=random&color=fff&size=64";
-                    pbAuthorAvatar.LoadAsync(url);
-                }
-                catch { }
+                try { pbAuthorAvatar.LoadAsync($"https://ui-avatars.com/api/?name={LevelInfo.AuthorName}&background=random&color=fff&size=64"); } catch { }
             }
         }
 
-        public void SetPreview(Image img)
+        private void btnLike_Click(object sender, EventArgs e)
         {
-            pbPreview.Image = img;
+            if (UserSession.Id == 0) return;
+
+            try
+            {
+                LevelRepository repo = new LevelRepository();
+                bool newState = repo.ToggleLike(UserSession.Id, LevelInfo.Id, LevelInfo.IsLikedByMe);
+
+                LevelInfo.IsLikedByMe = newState;
+                LevelInfo.LikesCount += newState ? 1 : -1;
+
+                ConfigurarDados();
+            }
+            catch (Exception ex) { MessageBox.Show("Erro ao curtir: " + ex.Message); }
         }
+
+        private void btnComment_Click(object sender, EventArgs e)
+        {
+            // Abre o formulário de comentários que criamos
+            CommentsForm frm = new CommentsForm(LevelInfo.Id);
+            frm.ShowDialog();
+        }
+
+        public void SetPreview(Image img) => pbPreview.Image = img;
 
         private void pbAuthorAvatar_Paint(object sender, PaintEventArgs e)
         {
@@ -76,7 +100,6 @@ namespace Robozzle
             pbAuthorAvatar.Region = new Region(gp);
         }
 
-        // Dispara os eventos
         private void OnPlay_Click(object sender, EventArgs e) => PlayRequested?.Invoke(this, LevelInfo);
         private void OnProfile_Click(object sender, EventArgs e) => ProfileRequested?.Invoke(this, LevelInfo.AuthorId);
     }

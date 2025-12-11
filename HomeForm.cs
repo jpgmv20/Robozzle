@@ -79,7 +79,8 @@ namespace Robozzle
             try
             {
                 LevelRepository repo = new LevelRepository();
-                _cachedLevels = repo.GetAllLevels();
+                // Passa o ID para saber se deu Like
+                _cachedLevels = repo.GetAllLevels(UserSession.Id);
                 FiltrarFasesLocais();
             }
             catch (Exception ex) { MessageBox.Show("Erro: " + ex.Message); }
@@ -121,9 +122,22 @@ namespace Robozzle
 
                     card.PlayRequested += (s, lvl) => {
                         string json = JsonConvert.SerializeObject(lvl.Data);
-                        GameForm game = new GameForm(json);
+
+                        // Passa o ID da fase para salvar estatísticas
+                        GameForm game = new GameForm(json, lvl.Id);
                         ThemeManager.ApplyTheme(game);
-                        this.Hide(); game.ShowDialog(); this.Show();
+
+                        this.Hide();
+                        game.ShowDialog(); // Jogo roda aqui...
+                        this.Show();
+
+                        // --- CORREÇÃO DO CONTADOR DE VISITAS ---
+                        // Ao voltar do jogo, recarrega do banco para atualizar Likes e Plays
+                        if (cmbSearchType.SelectedIndex == 0)
+                        {
+                            CarregarFasesDoBanco();
+                        }
+                        // ---------------------------------------
                     };
 
                     card.ProfileRequested += (s, authorId) => AbrirPerfil(authorId);
@@ -133,7 +147,7 @@ namespace Robozzle
             pnlContainer.ResumeLayout();
         }
 
-        // --- LÓGICA DE PERFIS (ATUALIZADA) ---
+        // --- LÓGICA DE PERFIS ---
 
         private void BuscarPerfisNoBanco()
         {
@@ -153,7 +167,6 @@ namespace Robozzle
             {
                 using (var conn = Database.GetConnection())
                 {
-                    // QUERY ATUALIZADA: Busca Descrição + Contagens
                     string sql = $@"
                         SELECT u.id, u.nome, u.avatar_image, u.descricao,
                                (SELECT COUNT(*) FROM followers sub WHERE sub.user_id = u.id) as num_seguidores,
@@ -189,24 +202,21 @@ namespace Robozzle
             finally { pnlContainer.ResumeLayout(); }
         }
 
-        // --- RENDERIZAÇÃO DO CARD RICO (Igual ao UserListForm) ---
         private void RenderRichUserCard(int id, string name, byte[]? avatarBytes, string descricao, int seguidores, int fases)
         {
             bool isDark = UserSession.Theme == "dark";
             Color textColor = isDark ? Color.White : Color.FromArgb(64, 64, 64);
             Color subTextColor = isDark ? Color.LightGray : Color.Gray;
 
-            // 1. CARD (Painel)
             Panel pnlCard = new Panel();
             pnlCard.Size = new Size(360, 90);
-            pnlCard.Margin = new Padding(15); // Margem maior para a grid da home
+            pnlCard.Margin = new Padding(15);
             pnlCard.Cursor = Cursors.Hand;
             pnlCard.BorderStyle = BorderStyle.FixedSingle;
             pnlCard.BackColor = isDark ? Color.FromArgb(60, 60, 60) : Color.White;
 
             pnlCard.Click += (s, e) => AbrirPerfil(id);
 
-            // 2. AVATAR
             PictureBox pb = new PictureBox();
             pb.Size = new Size(60, 60);
             pb.Location = new Point(10, 15);
@@ -229,7 +239,6 @@ namespace Robozzle
                 pb.Region = new Region(gp);
             };
 
-            // 3. NOME
             Label lblNome = new Label();
             lblNome.Text = name;
             lblNome.Location = new Point(80, 10);
@@ -238,7 +247,6 @@ namespace Robozzle
             lblNome.ForeColor = textColor;
             lblNome.Enabled = false;
 
-            // 4. DESCRIÇÃO
             string descCurta = descricao;
             if (descCurta.Length > 35) descCurta = descCurta.Substring(0, 35) + "...";
             if (string.IsNullOrWhiteSpace(descCurta)) descCurta = "Sem descrição.";
@@ -251,7 +259,6 @@ namespace Robozzle
             lblDesc.ForeColor = subTextColor;
             lblDesc.Enabled = false;
 
-            // 5. ESTATÍSTICAS
             Label lblStats = new Label();
             lblStats.Text = $"👥 {seguidores} Seguidores   🎮 {fases} Fases";
             lblStats.Location = new Point(80, 58);
@@ -267,8 +274,6 @@ namespace Robozzle
 
             pnlContainer.Controls.Add(pnlCard);
         }
-
-        // --- AUXILIARES ---
 
         private void AbrirPerfil(int userId)
         {
