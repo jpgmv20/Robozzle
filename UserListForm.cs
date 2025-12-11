@@ -43,7 +43,7 @@ namespace Robozzle
                 {
                     string sql;
 
-                    // --- MUDANÇA NA QUERY: Adicionamos subqueries para contar Fases e Seguidores ---
+                    / --- MUDANÇA NA QUERY: Adicionamos subqueries para contar Fases e Seguidores ---
                     string commonSelect = @"
                         SELECT u.id, u.nome, u.avatar_image, u.descricao,
                                (SELECT COUNT(*) FROM followers sub WHERE sub.user_id = u.id) as num_seguidores,

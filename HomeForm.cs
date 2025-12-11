@@ -135,16 +135,15 @@ namespace Robozzle
                         ThemeManager.ApplyTheme(game);
 
                         this.Hide();
-                        game.ShowDialog(); // Jogo roda aqui...
+                        game.ShowDialog(); 
                         this.Show();
 
-                        // --- CORREÇÃO DO CONTADOR DE VISITAS ---
                         // Ao voltar do jogo, recarrega do banco para atualizar Likes e Plays
                         if (cmbSearchType.SelectedIndex == 0)
                         {
                             CarregarFasesDoBanco();
                         }
-                        // ---------------------------------------
+                        
                     };
 
                     card.ProfileRequested += (s, authorId) => AbrirPerfil(authorId);

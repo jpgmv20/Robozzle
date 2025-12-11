@@ -47,7 +47,7 @@ namespace RobozllueApp
         public string ConditionColor { get; set; } = "none";
     }
 
-    // --- NOVA CLASSE: COMENTÁRIOS ---
+    
     public class CommentEntity
     {
         public int Id { get; set; }

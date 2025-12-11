@@ -139,9 +139,6 @@ namespace Robozzle
             }
         }
 
-        // --- RESTO DO CÓDIGO (Grid, Pintura, Salvar) ---
-        // (Mantém o mesmo código da resposta anterior para ResizeGrid, pbGrid_Paint, pbGrid_MouseClick, btnSave_Click)
-
         private void CreateToolButton(string text, string tag, Color bg)
         {
             Button btn = new Button();

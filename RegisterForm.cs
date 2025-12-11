@@ -20,7 +20,7 @@ namespace Robozzle
             this.PainelCentral = pnlCentral;
         }
 
-        // Renomeado de btnUpload_Click para btnFoto_Click (para bater com o Designer)
+        
         private void btnFoto_Click(object sender, EventArgs e)
         {
             OpenFileDialog ofd = new OpenFileDialog();
@@ -68,7 +68,7 @@ namespace Robozzle
             return b;
         }
 
-        // Renomeado de btnRegister_Click para btnCadastrar_Click (para bater com o Designer)
+        
         private void btnCadastrar_Click(object sender, EventArgs e)
         {
             string nome = txtNome.Text.Trim();
@@ -97,7 +97,7 @@ namespace Robozzle
                         cmd.Parameters.AddWithValue("p_password", hashSenha);
                         cmd.Parameters.AddWithValue("p_image_type", avatarMime);
 
-                        // Passa o array de bytes (agora pequeno e otimizado)
+                        // Passa o array de bytes 
                         cmd.Parameters.AddWithValue("p_avatar_image", avatarBytes);
 
                         cmd.Parameters.AddWithValue("p_config", "{\"tema\": \"theme-dark\"}");

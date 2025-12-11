@@ -44,7 +44,7 @@ namespace Robozzle
             }
             else if (c is Button btn)
             {
-                // --- BOTÕES COM CORES ESPECIAIS (PINCÉIS, SETAS, CONDICIONAIS) ---
+                
 
                 string tag = btn.Tag?.ToString() ?? "";
 

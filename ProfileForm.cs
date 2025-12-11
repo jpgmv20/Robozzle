@@ -61,10 +61,7 @@ namespace Robozzle
             {
                 using (var conn = Database.GetConnection())
                 {
-                    // --- QUERY CORRIGIDA ---
-                    // Tabela: followers
-                    // Quem é seguido: user_id
-                    // Quem segue: follower_id
+
                     string sql = @"
                         SELECT u.nome, u.descricao, u.avatar_image, u.config,
                                (SELECT COUNT(*) FROM followers WHERE user_id = u.id) as seguidores,
@@ -111,7 +108,7 @@ namespace Robozzle
 
                     if (!_isMyProfile)
                     {
-                        // --- QUERY CORRIGIDA ---
+                      
                         string sqlCheck = "SELECT COUNT(*) FROM followers WHERE follower_id = @me AND user_id = @target";
                         using (var cmd = new MySqlCommand(sqlCheck, conn))
                         {
@@ -148,7 +145,7 @@ namespace Robozzle
                 using (var conn = Database.GetConnection())
                 {
                     string sql;
-                    // --- QUERY CORRIGIDA ---
+                    
                     if (_isFollowing)
                         sql = "DELETE FROM followers WHERE follower_id = @me AND user_id = @target";
                     else

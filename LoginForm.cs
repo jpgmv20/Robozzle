@@ -50,7 +50,7 @@ namespace Robozzle
                                     UserSession.Nome = reader.GetString("nome");
                                     UserSession.Email = reader.GetString("email");
 
-                                    // --- CORREÇÃO DO ERRO OUTOFMEMORY ---
+                                    
                                     if (!reader.IsDBNull(reader.GetOrdinal("avatar_image")))
                                     {
                                         byte[] imgBytes = (byte[])reader["avatar_image"];

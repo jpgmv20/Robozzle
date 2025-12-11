@@ -86,7 +86,7 @@ namespace Robozzle
 
         private void btnComment_Click(object sender, EventArgs e)
         {
-            // Abre o formulário de comentários que criamos
+            // Abre o formulário de comentários
             CommentsForm frm = new CommentsForm(LevelInfo.Id);
             frm.ShowDialog();
         }

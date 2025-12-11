@@ -101,9 +101,7 @@ namespace Robozzle
             // Calcula altura baseada no texto
             Size size = TextRenderer.MeasureText(lblMessage.Text, lblMessage.Font, new Size(lblMessage.Width, 0), TextFormatFlags.WordBreak);
 
-            // --- AJUSTE DE ESPAÇAMENTO AQUI ---
-            // Aumentei de 30 para 45. Isso empurra o Dock=Bottom (hora) mais para baixo,
-            // criando um vão maior entre o texto e a hora.
+            
             this.Height = size.Height + lblTime.Height + 45;
         }
     }

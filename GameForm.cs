@@ -142,7 +142,6 @@ namespace Robozzle
                 }
                 catch { }
             }
-            // -----------------------
 
             SetEditMode(true);
             this.Close();
@@ -163,7 +162,7 @@ namespace Robozzle
                 }
                 catch { }
             }
-            // -----------------------
+       
 
             _engine?.Reset();
             pbGrid.Invalidate();

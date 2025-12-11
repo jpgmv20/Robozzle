@@ -28,9 +28,9 @@ namespace RobozllueApp
 
         private Stack<CommandSlot> _commandStack;
 
-        // --- CORREÇÃO AQUI: Propriedade Pública ---
+      
         public int StepsTaken { get; private set; }
-        // ------------------------------------------
+        
 
         private const int MAX_STEPS = 2000;
 
@@ -55,7 +55,7 @@ namespace RobozllueApp
         public void Reset()
         {
             _commandStack = new Stack<CommandSlot>();
-            StepsTaken = 0; // Alterado para a propriedade
+            StepsTaken = 0; 
             StarsCollected = 0;
             TotalStars = 0;
 
@@ -104,7 +104,7 @@ namespace RobozllueApp
         public void Tick()
         {
             if (_commandStack.Count == 0) return;
-            if (StepsTaken >= MAX_STEPS) { OnDefeat?.Invoke(); return; } // Alterado
+            if (StepsTaken >= MAX_STEPS) { OnDefeat?.Invoke(); return; } 
 
             CommandSlot cmd = _commandStack.Pop();
 
@@ -123,7 +123,7 @@ namespace RobozllueApp
                 }
             }
 
-            StepsTaken++; // Alterado
+            StepsTaken++; 
             ExecuteCommand(cmd);
             OnStep?.Invoke();
 

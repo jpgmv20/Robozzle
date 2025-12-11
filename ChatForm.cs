@@ -19,9 +19,7 @@ namespace Robozzle
         {
             InitializeComponent();
 
-            // --- CORREÇÃO DO BUG DO PAINEL BRANCO ---
-            // NÃO defina this.PainelCentral. Deixe o SplitContainer preencher tudo.
-            // this.PainelCentral = splitContainer1; <--- ISSO CAUSAVA O ERRO
+
 
             this.txtMessage.KeyDown += txtMessage_KeyDown;
         }
@@ -150,7 +148,7 @@ namespace Robozzle
         {
             if (e.KeyCode == Keys.Enter)
             {
-                if (e.Shift) return; // Nova linha
+                if (e.Shift) return; 
                 e.SuppressKeyPress = true; // Remove som
                 btnSend.PerformClick();
             }

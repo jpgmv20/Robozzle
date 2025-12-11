@@ -15,7 +15,7 @@ namespace Robozzle
         public CommentsForm(int levelId)
         {
             InitializeComponent();
-            this.PainelCentral = pnlList; // Centraliza se quiser, ou remove
+            this.PainelCentral = pnlList;
             _levelId = levelId;
 
             ThemeManager.ApplyTheme(this);
